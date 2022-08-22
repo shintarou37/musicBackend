@@ -10,6 +10,7 @@ import (
 type Music struct {
   gorm.Model
 	Name    string
+  Artist  string
 	Reason  string
 }
 

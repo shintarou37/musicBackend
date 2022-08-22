@@ -7,11 +7,18 @@ import (
   "reflect"
 )
 
+type Mst_situation struct {
+  gorm.Model
+	Name    string
+  Musics  []Music
+}
+
 type Music struct {
   gorm.Model
 	Name    string
   Artist  string
 	Reason  string
+  Mst_situationID uint `gorm:"not null"`
 }
 
 func main() {
@@ -32,6 +39,7 @@ func main() {
 func up01(dsn string, db *gorm.DB) {
     fmt.Println("Start up01!");
     // charsetをutf8mb4にしないと、ORMをDBに接続した際のcharsetと合わずに文字列を登録すると「?」になる
+    db.Set("gorm:table_options", "charset=utf8mb4").AutoMigrate(Mst_situation{})
     db.Set("gorm:table_options", "charset=utf8mb4").AutoMigrate(Music{})
     fmt.Println("End up01!");
 
@@ -40,5 +48,6 @@ func down01(dsn string, db *gorm.DB) {
     fmt.Println("Start down01!");
     // テーブル削除
     db.Migrator().DropTable(&Music{})
+    db.Migrator().DropTable(&Mst_situation{})
     fmt.Println("End down01!");
 }

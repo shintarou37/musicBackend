@@ -12,12 +12,19 @@ const (
 	StatusInternalServerError = 500
 )
 
+type Mst_situation struct {
+    gorm.Model
+    Name    string
+    Musics  []Music
+  }
+  
 type Music struct {
     gorm.Model
-	Name    string `json:"name"`
-	Artist  string `json:"artist"`
-	Reason  string `json:"reason"`
-}
+    Name    string
+    Artist  string
+    Reason  string
+    Mst_situationID uint `gorm:"not null"`
+  }
 
 // グローバルスコープとして定義することで、本ファイルのどの関数でも引数の受け渡しなしに使用可能にする。
 var db *gorm.DB
@@ -116,20 +123,12 @@ func register(w http.ResponseWriter, r *http.Request){
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-		// jsonエンコード
-		outputJson, err := json.Marshal(create)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-
-	fmt.Println(string(outputJson))
-
     // // ヘッダーをセットする
     w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "*")
 
-    // jsonデータを返却する
-    fmt.Fprint(w, string(outputJson))
+    // データを返却する
+    fmt.Fprint(w, true)
 }
 /* 
     パス：top

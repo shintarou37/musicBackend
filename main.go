@@ -6,11 +6,9 @@ import (
 	"net/http"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	// "reflect"
+	"reflect"
 )
-const (
-	StatusInternalServerError = 500
-)
+const StatusInternalServerError int = 500
 
 type Mst_situation struct {
     gorm.Model
@@ -23,8 +21,13 @@ type Music struct {
     Name    string
     Artist  string
     Reason  string
-    Mst_situationID uint `gorm:"not null"`
-  }
+    Mst_situationID uint
+}
+
+type Response1 struct {
+    Mst_situation   string
+    Music   string
+}
 
 // グローバルスコープとして定義することで、本ファイルのどの関数でも引数の受け渡しなしに使用可能にする。
 var db *gorm.DB
@@ -55,11 +58,18 @@ func top(w http.ResponseWriter, r *http.Request){
     w.Header().Set("Content-Type", "application/json")
 
     // 全レコードを取得する
-    ret, orm_err := ReadMulti()
-
+    music, situation, orm_err := ReadMulti()
+    fmt.Println(reflect.TypeOf(music))
+    fmt.Println(reflect.TypeOf(situation))
     // jsonエンコード
-    outputJson, err := json.Marshal(ret)
-
+    situationJson, err := json.Marshal(situation)
+    musicJson, err := json.Marshal(music)
+    // fmt.Println(reflect.TypeOf(situationJson))
+    // fmt.Println(reflect.TypeOf(musicJson))
+    // arr := [2]string{string(situationJson), string(musicJson)}
+    // outputJson, err := json.Marshal(arr)
+    var res = Response1{Mst_situation: string(situationJson), Music: string(musicJson)}
+    outputJson, err := json.Marshal(res)
     // エラー処理
     if err != nil || !orm_err{
         fmt.Println("error happen!")
@@ -133,13 +143,18 @@ func register(w http.ResponseWriter, r *http.Request){
 /* 
     パス：top
 */
-func ReadMulti()([]Music, bool){
+func ReadMulti()([]Music, []Mst_situation, bool){
     var music_arr []Music
+    var situation_arr []Mst_situation
     // return music_arr, false
     if err := db.Debug().Find(&music_arr).Error; err != nil {
-		return music_arr, false
+		return music_arr, situation_arr, false
 	}
-    return music_arr, true
+
+    if err := db.Debug().Find(&situation_arr).Error; err != nil {
+		return music_arr, situation_arr, false
+	}
+    return music_arr, situation_arr, true
 }
 
 /* 

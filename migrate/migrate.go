@@ -18,7 +18,7 @@ type Music struct {
 	Name    string
   Artist  string
 	Reason  string
-  Mst_situationID uint `gorm:"not null"`
+  Mst_situationID int `gorm:"not null"`
 }
 
 func main() {

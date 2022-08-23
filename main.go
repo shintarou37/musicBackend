@@ -31,7 +31,7 @@ type ResponseTop struct {
 	Music         string
 }
 
-type MusicResult struct {
+type ResultMusic struct {
 	gorm.Model
 	Name            	string
 	Artist          	string
@@ -96,10 +96,6 @@ func top(w http.ResponseWriter, r *http.Request) {
 func detail(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("パス（\"/detail\"）でGOが呼び出された")
 
-	// ヘッダーをセットする
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
 	// クエリパラメータ「id」を取得する
 	var id string = r.URL.Query().Get("id")
 
@@ -120,6 +116,9 @@ func detail(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error happen!")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+	// ヘッダーをセットする
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 
 	// jsonデータを返却する
 	fmt.Fprint(w, string(outputJson))
@@ -161,8 +160,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 /*
    パス：top
 */
-func ReadMulti() ([]MusicResult, []Mst_situation, bool) {
-	var music_result []MusicResult
+func ReadMulti() ([]ResultMusic, []Mst_situation, bool) {
+	var music_result []ResultMusic
 	var situation_arr []Mst_situation
 
 	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Find(&music_result).Error; err != nil {
@@ -179,13 +178,19 @@ func ReadMulti() ([]MusicResult, []Mst_situation, bool) {
 /*
    パス：detail
 */
-func Read(id string) (Music, bool) {
-	var music Music
+func Read(id string) (ResultMusic, bool) {
+	var music_result ResultMusic
 	// return music, false
 	// ポインタを引数にしない場合はエラーになる
-	if err := db.Debug().First(&music, id).Error; err != nil {
-		fmt.Println("error happen!")
-		return music, true
+	// if err := db.Debug().First(&music_result, id).Error; err != nil {
+	// 	fmt.Println("error happen!")
+	// 	return music_result, true
+	// }
+	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Find(&music_result).Error; err != nil {
+	    fmt.Println(err)
+		return music_result, false
 	}
-	return music, true
+	fmt.Println(json.Marshal(music_result))
+	
+	return music_result, true
 }

@@ -46,7 +46,7 @@ var db_err error
 
 func main() {
 	fmt.Println("Start!")
-	dsn := "root:@tcp(127.0.0.1:3306)/music?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "root:secualpass@tcp(127.0.0.1:3306)/music?charset=utf8mb4&parseTime=True&loc=Local"
 	db, db_err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if db_err != nil {
 		panic(db_err)
@@ -161,36 +161,32 @@ func register(w http.ResponseWriter, r *http.Request) {
    パス：top
 */
 func ReadMulti() ([]ResultMusic, []Mst_situation, bool) {
-	var music_result []ResultMusic
+	var music []ResultMusic
 	var situation_arr []Mst_situation
 
-	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Find(&music_result).Error; err != nil {
+	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Find(&music).Error; err != nil {
 	    fmt.Println(err)
-		return music_result, situation_arr, false
+		return music, situation_arr, false
 	}
 
 	if err := db.Debug().Find(&situation_arr).Error; err != nil {
-		return music_result, situation_arr, false
+		return music, situation_arr, false
 	}
-	return music_result, situation_arr, true
+	return music, situation_arr, true
 }
 
 /*
    パス：detail
 */
+
 func Read(id string) (ResultMusic, bool) {
-	var music_result ResultMusic
-	// return music, false
-	// ポインタを引数にしない場合はエラーになる
-	// if err := db.Debug().First(&music_result, id).Error; err != nil {
-	// 	fmt.Println("error happen!")
-	// 	return music_result, true
-	// }
-	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Find(&music_result).Error; err != nil {
-	    fmt.Println(err)
-		return music_result, false
+	var music ResultMusic
+
+	// テーブル名を指定しないと構造体の名称「ResultMusic」をテーブル名をみなす
+	if err := db.Debug().Table("musics").Select("musics.*, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").First(&music, id).Error; err != nil {
+		fmt.Println(err)
+		return music, false
 	}
-	fmt.Println(json.Marshal(music_result))
 	
-	return music_result, true
+	return music, true
 }

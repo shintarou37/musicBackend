@@ -76,13 +76,19 @@ func top(w http.ResponseWriter, r *http.Request) {
 
 	// 全レコードを取得する
 	music, situation, orm_err := ReadMulti()
-
+	if !orm_err {
+		fmt.Println("error happen!")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, false)
+		return
+	}
 	// jsonエンコード
 	situationJson, errSitu := json.Marshal(situation)
 	musicJson, errMusic := json.Marshal(music)
 	if errSitu != nil || errMusic != nil{
 		fmt.Println("error happen!")
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, false)
 		return
 	}
 
@@ -90,7 +96,7 @@ func top(w http.ResponseWriter, r *http.Request) {
 	outputJson, err := json.Marshal(res)
 
 	// エラー処理
-	if err != nil || !orm_err {
+	if err != nil {
 		fmt.Println("error happen!")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -103,6 +109,11 @@ func top(w http.ResponseWriter, r *http.Request) {
 */
 func detail(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("パス（\"/detail\"）でGOが呼び出された")
+	
+	// ヘッダーをセットする
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Content-Type", "application/json")
 
 	// クエリパラメータ「id」を取得する
 	var id string = r.URL.Query().Get("id")
@@ -110,7 +121,7 @@ func detail(w http.ResponseWriter, r *http.Request) {
 	// React側で画面をリロードするとクエリパラメータがundefinedで送付される
 	// その場合は"false"という文字列がパラメーターとして送信されてsqlは発行しない
 	if id == "false" {
-		panic("no query params")
+		return
 		// これ以降の処理は行われない
 	}
 
@@ -124,9 +135,7 @@ func detail(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error happen!")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	// ヘッダーをセットする
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
+
 
 	// jsonデータを返却する
 	fmt.Fprint(w, string(outputJson))
@@ -190,7 +199,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 func ReadMulti() ([]ResultMusic, []Mst_situation, bool) {
 	var music []ResultMusic
 	var situation_arr []Mst_situation
-
+	// return music, situation_arr, false
 	// Musicテーブルのレコードを取得する
 	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Find(&music).Error; err != nil {
 	    fmt.Println(err)
@@ -210,7 +219,7 @@ func ReadMulti() ([]ResultMusic, []Mst_situation, bool) {
 
 func Read(id string) (ResultMusic, bool) {
 	var music ResultMusic
-
+	// return music, false
 	// テーブル名を指定しないと構造体の名称「ResultMusic」をテーブル名をみなす
 	if err := db.Debug().Table("musics").Select("musics.*, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").First(&music, id).Error; err != nil {
 		fmt.Println(err)

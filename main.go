@@ -9,11 +9,12 @@ import (
 	"unicode/utf8"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"backend/unify"
 )
 
 const (
-	StatusInternalServerError	= 500
 	StatusBadRequest			= 400
+	StatusInternalServerError	= 500
 )
 
 type Mst_situation struct {
@@ -50,7 +51,7 @@ var db_err error
 
 func main() {
 	fmt.Println("Start!")
-	dsn := "root:secualpass@tcp(127.0.0.1:3306)/music?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := unify.DBSet
 	db, db_err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if db_err != nil {
 		panic(db_err)

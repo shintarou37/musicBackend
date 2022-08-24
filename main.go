@@ -78,8 +78,14 @@ func top(w http.ResponseWriter, r *http.Request) {
 	music, situation, orm_err := ReadMulti()
 
 	// jsonエンコード
-	situationJson, err := json.Marshal(situation)
-	musicJson, err := json.Marshal(music)
+	situationJson, errSitu := json.Marshal(situation)
+	musicJson, errMusic := json.Marshal(music)
+	if errSitu != nil || errMusic != nil{
+		fmt.Println("error happen!")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	var res = ResponseTop{Mst_situation: string(situationJson), Music: string(musicJson)}
 	outputJson, err := json.Marshal(res)
 
@@ -88,6 +94,7 @@ func top(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error happen!")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+
 	fmt.Fprint(w, string(outputJson))
 }
 
@@ -184,11 +191,13 @@ func ReadMulti() ([]ResultMusic, []Mst_situation, bool) {
 	var music []ResultMusic
 	var situation_arr []Mst_situation
 
+	// Musicテーブルのレコードを取得する
 	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Find(&music).Error; err != nil {
 	    fmt.Println(err)
 		return music, situation_arr, false
 	}
 
+	// Mst_situationテーブルのレコードを取得する
 	if err := db.Debug().Find(&situation_arr).Error; err != nil {
 		return music, situation_arr, false
 	}

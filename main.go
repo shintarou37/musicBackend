@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	// "reflect"
+	"reflect"
 	"strconv"
 	"unicode/utf8"
 	"gorm.io/driver/mysql"
@@ -120,10 +120,17 @@ func detail(w http.ResponseWriter, r *http.Request) {
 
 	// React側で画面をリロードするとクエリパラメータがundefinedで送付される
 	// その場合は"false"という文字列がパラメーターとして送信されてsqlは発行しない
-	if id == "false" {
+	fmt.Println(r.Method)
+	fmt.Println(id)
+	fmt.Println(reflect.TypeOf(id))
+	fmt.Println("test-------------")
+	if r.Method != http.MethodGet {
 		return
-		// これ以降の処理は行われない
 	}
+	// if id == "false" {
+	// 	return
+	// 	// これ以降の処理は行われない
+	// }
 
 	ret, orm_err := Read(id)
 

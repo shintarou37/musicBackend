@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"backend/unify"
+	// "reflect"
 )
 
 /*
@@ -42,4 +43,17 @@ func Read(db *gorm.DB, id string) (unify.ResultMusic, bool) {
 	}
 	
 	return music, true
+}
+
+/*
+   パス：register
+*/
+
+func Register(db *gorm.DB, create *unify.Music) (bool) {
+	if orm_err := db.Debug().Create(&create).Error; orm_err != nil {
+		fmt.Println("error happen!")
+		return false
+	}
+
+	return true
 }

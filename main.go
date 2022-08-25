@@ -83,7 +83,7 @@ func top(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, false)
 		return
 	}
-	
+
 	// jsonエンコード
 	situationJson, errSitu := json.Marshal(situation)
 	musicJson, errMusic := json.Marshal(music)
@@ -125,7 +125,7 @@ func detail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, orm_err := Read(id)
+	ret, orm_err := models.Read(db, id)
 
 	// jsonエンコード
 	outputJson, err := json.Marshal(ret)
@@ -192,18 +192,3 @@ func register(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, true)
 }
 
-/*
-   パス：detail
-*/
-
-func Read(id string) (ResultMusic, bool) {
-	var music ResultMusic
-	// return music, false
-	// テーブル名を指定しないと構造体の名称「ResultMusic」をテーブル名をみなす
-	if err := db.Debug().Table("musics").Select("musics.*, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").First(&music, id).Error; err != nil {
-		fmt.Println(err)
-		return music, false
-	}
-	
-	return music, true
-}

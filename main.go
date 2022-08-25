@@ -18,34 +18,6 @@ const (
 	StatusInternalServerError	= 500
 )
 
-type Mst_situation struct {
-	gorm.Model
-	Name   string
-	Musics []Music
-}
-
-type Music struct {
-	gorm.Model
-	Name            string
-	Artist          string
-	Reason          string
-	Mst_situationID int
-}
-
-type ResponseTop struct {
-	Mst_situation string
-	Music         string
-}
-
-type ResultMusic struct {
-	gorm.Model
-	Name            	string
-	Artist          	string
-	Reason          	string
-	Mst_situationID		int
-	Mst_situationName   string
-}
-
 // グローバルスコープとして定義することで、本ファイルのどの関数でも引数の受け渡しなしに使用可能にする。
 var db *gorm.DB
 var db_err error
@@ -94,7 +66,7 @@ func top(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var res = ResponseTop{Mst_situation: string(situationJson), Music: string(musicJson)}
+	var res = unify.ResponseTop{Mst_situation: string(situationJson), Music: string(musicJson)}
 	outputJson, err := json.Marshal(res)
 
 	// エラー処理
@@ -180,7 +152,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 	situationID, _ = strconv.Atoi(s)
 
 	// クエリパラメータに含まれた値を使用して構造体を初期化する。
-	var create = Music{Name: name, Reason: reason, Artist: artist, Mst_situationID: situationID}
+	var create = unify.Music{Name: name, Reason: reason, Artist: artist, Mst_situationID: situationID}
 
 	// レコードの作成
 	if orm_err := db.Debug().Create(&create).Error; orm_err != nil {

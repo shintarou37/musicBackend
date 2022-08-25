@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"reflect"
+	// "reflect"
 	"strconv"
 	"unicode/utf8"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"backend/unify"
+	"backend/models"
 )
 
 const (
@@ -75,13 +76,14 @@ func top(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// 全レコードを取得する
-	music, situation, orm_err := ReadMulti()
+	music, situation, orm_err := models.ReadMulti(db)
 	if !orm_err {
 		fmt.Println("error happen!")
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, false)
 		return
 	}
+	
 	// jsonエンコード
 	situationJson, errSitu := json.Marshal(situation)
 	musicJson, errMusic := json.Marshal(music)
@@ -188,26 +190,6 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	// データを返却する
 	fmt.Fprint(w, true)
-}
-
-/*
-   パス：top
-*/
-func ReadMulti() ([]ResultMusic, []Mst_situation, bool) {
-	var music []ResultMusic
-	var situation_arr []Mst_situation
-	// return music, situation_arr, false
-	// Musicテーブルのレコードを取得する
-	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Find(&music).Error; err != nil {
-	    fmt.Println(err)
-		return music, situation_arr, false
-	}
-
-	// Mst_situationテーブルのレコードを取得する
-	if err := db.Debug().Find(&situation_arr).Error; err != nil {
-		return music, situation_arr, false
-	}
-	return music, situation_arr, true
 }
 
 /*

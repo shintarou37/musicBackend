@@ -6,11 +6,12 @@ import (
 	"net/http"
 	// "reflect"
 	"strconv"
-	"unicode/utf8"
+	// "unicode/utf8"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"backend/unify"
 	"backend/models"
+	"backend/validates"
 )
 
 const (
@@ -129,17 +130,13 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	// クエリパラメータを受け取る
 	var name string = r.URL.Query().Get("name")
-	var nameln int = utf8.RuneCountInString(name)
-	// fmt.Println(nameln)
 	var artist string = r.URL.Query().Get("artist")
-	var artistln int = utf8.RuneCountInString(artist)
-	// fmt.Println(artistln)
 	var reason string = r.URL.Query().Get("reason")
-	var reasonln int = utf8.RuneCountInString(reason)
-	// fmt.Println(reasonln)
 
 	// 文字数チェック
-	if nameln == 0 || nameln >= 101 || artistln == 0 || artistln >= 101 || reasonln >= 1001{
+	retVatidate := validates.Register(name, artist, reason)
+
+	if !retVatidate{
 		// 文字数が不正である場合は400エラーを返却する
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, false)
@@ -158,7 +155,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 	ret := models.Register(db, &create)
 
 	if !ret {
-		fmt.Println("error happen!")
+		fmt.Println("登録エラー")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 

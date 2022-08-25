@@ -51,7 +51,8 @@ func Read(db *gorm.DB, id string) (unify.ResultMusic, bool) {
 
 func Register(db *gorm.DB, create *unify.Music) (bool) {
 	if orm_err := db.Debug().Create(&create).Error; orm_err != nil {
-		fmt.Println("error happen!")
+		fmt.Println("登録関数エラー")
+		fmt.Println(orm_err)
 		return false
 	}
 

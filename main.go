@@ -118,19 +118,10 @@ func detail(w http.ResponseWriter, r *http.Request) {
 	// クエリパラメータ「id」を取得する
 	var id string = r.URL.Query().Get("id")
 
-	// React側で画面をリロードするとクエリパラメータがundefinedで送付される
-	// その場合は"false"という文字列がパラメーターとして送信されてsqlは発行しない
-	fmt.Println(r.Method)
-	fmt.Println(id)
-	fmt.Println(reflect.TypeOf(id))
-	fmt.Println("test-------------")
-	if r.Method != http.MethodGet {
+	// ブラウザをリロードした際にクエリパラメータがundefindで送付される場合がある
+	if r.Method != http.MethodGet || id == "undefined"{
 		return
 	}
-	// if id == "false" {
-	// 	return
-	// 	// これ以降の処理は行われない
-	// }
 
 	ret, orm_err := Read(id)
 
@@ -142,7 +133,6 @@ func detail(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error happen!")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 
 	// jsonデータを返却する
 	fmt.Fprint(w, string(outputJson))

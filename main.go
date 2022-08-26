@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	// "reflect"
+	"reflect"
 	"strconv"
 	// "unicode/utf8"
 	"gorm.io/driver/mysql"
@@ -42,6 +42,13 @@ func main() {
 */
 func top(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("パス（\"/\"）でGOが呼び出された")
+	var search string = r.URL.Query().Get("search")
+	fmt.Println("--------")
+	fmt.Println(reflect.TypeOf(search))
+	fmt.Println(search)
+	if search == "" {
+		fmt.Println("から文字列です")
+	}
 
 	// ヘッダーをセットする（エラー処理後にセットするとCROSエラーになる）
 	w.Header().Set("Access-Control-Allow-Origin", "*")

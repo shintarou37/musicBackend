@@ -56,7 +56,7 @@ func top(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// 全レコードを取得する
-	music, situation, orm_err := models.ReadMulti(db)
+	music, situation, orm_err := models.ReadMulti(db, search)
 	if !orm_err {
 		fmt.Println("error happen!")
 		w.WriteHeader(http.StatusInternalServerError)

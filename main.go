@@ -12,6 +12,8 @@ import (
 	"backend/unify"
 	"backend/models"
 	"backend/validates"
+	"github.com/joho/godotenv"
+	"os"
 )
 
 const (
@@ -25,7 +27,13 @@ var db_err error
 
 func main() {
 	fmt.Println("Start!")
-	dsn := unify.DBSet
+	err := godotenv.Load(fmt.Sprintf("env/%s.env", os.Getenv("GO_ENV")))
+	if err != nil {
+			fmt.Println(err)
+	}
+	db_set := os.Getenv("DB_SET")
+	port := os.Getenv("PORT")
+	dsn := db_set
 	db, db_err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if db_err != nil {
 		panic(db_err)
@@ -34,7 +42,7 @@ func main() {
 	http.HandleFunc("/", top)
 	http.HandleFunc("/detail", detail)
 	http.HandleFunc("/register", register)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(port, nil)
 }
 
 /*
@@ -43,11 +51,10 @@ func main() {
 func top(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("パス（\"/\"）でGOが呼び出された")
 	var search string = r.URL.Query().Get("search")
-	fmt.Println("--------")
 	fmt.Println(reflect.TypeOf(search))
 	fmt.Println(search)
 	if search == "" {
-		fmt.Println("から文字列です")
+		fmt.Println("params「search」が文字列です")
 	}
 
 	// ヘッダーをセットする（エラー処理後にセットするとCROSエラーになる）
@@ -58,7 +65,8 @@ func top(w http.ResponseWriter, r *http.Request) {
 	// 全レコードを取得する
 	music, situation, orm_err := models.ReadMulti(db, search)
 	if !orm_err {
-		fmt.Println("error happen!")
+		fmt.Println("ReadMulti error happen!")
+		fmt.Println(orm_err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, false)
 		return
@@ -68,7 +76,9 @@ func top(w http.ResponseWriter, r *http.Request) {
 	situationJson, errSitu := json.Marshal(situation)
 	musicJson, errMusic := json.Marshal(music)
 	if errSitu != nil || errMusic != nil{
-		fmt.Println("error happen!")
+		fmt.Println("errSitu errMusic error happen!")
+		fmt.Println(errSitu)
+		fmt.Println(errMusic)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, false)
 		return
@@ -79,7 +89,8 @@ func top(w http.ResponseWriter, r *http.Request) {
 
 	// エラー処理
 	if err != nil {
-		fmt.Println("error happen!")
+		fmt.Println("unify.ResponseTop error happen!")
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 

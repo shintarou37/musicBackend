@@ -5,6 +5,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
   "reflect"
+  "github.com/joho/godotenv"
+	"os"
 )
 
 type Mst_situation struct {
@@ -23,13 +25,18 @@ type Music struct {
 
 func main() {
     fmt.Println("Start migrate!");
-    dsn := "root:@tcp(127.0.0.1:3306)/music?charset=utf8mb4&parseTime=True&loc=Local"
+    err := godotenv.Load(fmt.Sprintf("env/%s.env", os.Getenv("GO_ENV")))
+    if err != nil {
+        fmt.Println(err)
+    }
+    db_set := os.Getenv("DB_SET")
+    dsn := db_set
     db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
     fmt.Println(reflect.TypeOf(db))
     if err != nil {
 		panic("failed to connect database")
 		} else {
-      down01(dsn, db);
+      // down01(dsn, db);
       up01(dsn, db)
 	}
 

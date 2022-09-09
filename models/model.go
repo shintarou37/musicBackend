@@ -13,15 +13,17 @@ import (
    パス：top
 */
 func ReadMulti(db *gorm.DB, search string) ([]unify.ResultMusic, []unify.Mst_situation, bool) {
+	// 構造体を初期化する
 	var music []unify.ResultMusic
 	var musicSearch = unify.ResultMusic{}
-	// クエリパラメータにsearchがある場合
+	var situation_arr []unify.Mst_situation
+
+	// クエリパラメータにsearchがある場合"Mst_situationID"を検索する
 	if search != ""{
 		var Mst_situationID, _ = strconv.Atoi(search)
 		musicSearch.Mst_situationID = Mst_situationID
 	}
 
-	var situation_arr []unify.Mst_situation
 	// return music, situation_arr, false
 	// Musicテーブルのレコードを取得する
 	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Order("musics.id asc").Find(&music, musicSearch).Error; err != nil {

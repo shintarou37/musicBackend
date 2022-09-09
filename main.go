@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"reflect"
+	// "reflect"
 	"strconv"
 	// "unicode/utf8"
 	"gorm.io/driver/mysql"
@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	StatusBadRequest			= 400
-	StatusInternalServerError	= 500
+	StatusBadRequest          = 400
+	StatusInternalServerError = 500
 )
 
 // グローバルスコープとして定義することで、本ファイルのどの関数でも引数の受け渡しなしに使用可能にする。
@@ -31,11 +31,11 @@ func main() {
 	if err != nil {
 			fmt.Println(err)
 	}
-	db_set := os.Getenv("DB_SET")
+	dsn := os.Getenv("DB_SET")
 	port := os.Getenv("PORT")
-	dsn := db_set
 	db, db_err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if db_err != nil {
+		fmt.Println("gorm Open err")
 		panic(db_err)
 	}
 
@@ -50,11 +50,11 @@ func main() {
 */
 func top(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("パス（\"/\"）でGOが呼び出された")
+
+	// クエリパラメーター"search"を取得する
 	var search string = r.URL.Query().Get("search")
-	fmt.Println(reflect.TypeOf(search))
-	fmt.Println(search)
 	if search == "" {
-		fmt.Println("params「search」が文字列です")
+		fmt.Println("params「search」が空文字列です")
 	}
 
 	// ヘッダーをセットする（エラー処理後にセットするとCROSエラーになる）
@@ -73,26 +73,11 @@ func top(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// jsonエンコード
-	situationJson, errSitu := json.Marshal(situation)
-	musicJson, errMusic := json.Marshal(music)
-	if errSitu != nil || errMusic != nil{
-		fmt.Println("errSitu errMusic error happen!")
-		fmt.Println(errSitu)
-		fmt.Println(errMusic)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, false)
-		return
-	}
+	situationJson, _ := json.Marshal(situation)
+	musicJson, _ := json.Marshal(music)
 
 	var res = unify.ResponseTop{Mst_situation: string(situationJson), Music: string(musicJson)}
-	outputJson, err := json.Marshal(res)
-
-	// エラー処理
-	if err != nil {
-		fmt.Println("unify.ResponseTop error happen!")
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	outputJson, _ := json.Marshal(res)
 
 	fmt.Fprint(w, string(outputJson))
 }
@@ -102,7 +87,7 @@ func top(w http.ResponseWriter, r *http.Request) {
 */
 func detail(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("パス（\"/detail\"）でGOが呼び出された")
-	
+
 	// ヘッダーをセットする
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
@@ -112,7 +97,7 @@ func detail(w http.ResponseWriter, r *http.Request) {
 	var id string = r.URL.Query().Get("id")
 
 	// ブラウザをリロードした際にクエリパラメータがundefindで送付される場合がある
-	if r.Method != http.MethodGet || id == "undefined"{
+	if r.Method != http.MethodGet || id == "undefined" {
 		return
 	}
 
@@ -154,11 +139,11 @@ func register(w http.ResponseWriter, r *http.Request) {
 	// 文字数チェック
 	retVatidate := validates.Register(name, artist, reason)
 
-	if !retVatidate{
+	if !retVatidate {
 		// 文字数が不正である場合は400エラーを返却する
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, false)
-		return 
+		return
 	}
 
 	// Mst_situationIDをint型に変換する
@@ -180,4 +165,3 @@ func register(w http.ResponseWriter, r *http.Request) {
 	// データを返却する
 	fmt.Fprint(w, true)
 }
-

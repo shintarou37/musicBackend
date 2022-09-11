@@ -29,8 +29,7 @@ func main() {
     if err != nil {
         fmt.Println(err)
     }
-    db_set := os.Getenv("DB_SET")
-    dsn := db_set
+    dsn := os.Getenv("DB_SET")
     db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
     fmt.Println(reflect.TypeOf(db))
     if err != nil {

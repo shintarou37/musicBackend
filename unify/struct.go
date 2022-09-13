@@ -19,8 +19,8 @@ type Music struct {
 }
 
 type ResponseTop struct {
-	Mst_situation string
-	Music         string
+	Mst_situation []Mst_situation
+	Music         []ResultMusic
 }
 
 type ResultMusic struct {

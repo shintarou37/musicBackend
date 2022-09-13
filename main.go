@@ -72,11 +72,9 @@ func top(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// jsonエンコード
-	situationJson, _ := json.Marshal(situation)
-	musicJson, _ := json.Marshal(music)
+	var res = unify.ResponseTop{Mst_situation: situation, Music: music}
 
-	var res = unify.ResponseTop{Mst_situation: string(situationJson), Music: string(musicJson)}
+	// jsonエンコード
 	outputJson, _ := json.Marshal(res)
 
 	fmt.Fprint(w, string(outputJson))

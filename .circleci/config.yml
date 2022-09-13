@@ -3,16 +3,19 @@ jobs:
   build:
     docker:
       - image: cimg/go:1.18
+        environment:
+          GO_ENV: test
       - image: cimg/mysql:5.7
         environment:
-          MYSQL_ROOT_PASSWORD: rootpw
+          DB_HOST: 127.0.0.1
+          MYSQL_ROOT_PASSWORD: rootpass
           MYSQL_DATABASE: music
           MYSQL_USER: user
           MYSQL_PASSWORD: passw0rd
     steps:
       - checkout
       - run:
-      # プライマリコンテナは MySQL ではないので、準備ができるまでスリープコマンドを実行します。
+          # プライマリコンテナは MySQL ではないので、準備ができるまでスリープコマンドを実行します。
           name: MySQL が準備できるまで待機
           command: |
             for i in `seq 1 10`;
@@ -22,3 +25,8 @@ jobs:
               sleep 1
             done
             echo Failed waiting for MySQL && exit 1
+      - run:
+          name: go server
+          command: |
+            go mod download
+            go run main.go

@@ -31,3 +31,4 @@ jobs:
             go mod download
             go run migrate/migrate.go
             go run main.go
+            go test

@@ -31,4 +31,7 @@ jobs:
             go mod download
             go run migrate/migrate.go
             go run main.go
+      - run:
+          name: go test
+          command: |
             go test

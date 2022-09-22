@@ -30,9 +30,4 @@ jobs:
           command: |
             go mod download
             go run migrate/migrate.go
-            go run main.go
             go test
-      - run:
-          name: go exit
-          command: |
-            runtime#GoExit

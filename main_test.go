@@ -9,7 +9,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	// "net/http/httptest"
+	"os/exec"
 )
+
+/*
+   Server Start
+*/
+func TestServer(t *testing.T){
+	fmt.Println("server")
+	err := exec.Command("go", "run", "main.go").Start()
+	if err != nil {
+		t.Error("[SERVER ERROR]", "want nil : ", err)
+	}
+}
 
 /*
    Top画面

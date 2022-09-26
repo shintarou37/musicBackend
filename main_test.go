@@ -18,10 +18,13 @@ import (
 */
 func TestServer(t *testing.T){
 	fmt.Println("server")
-	err := exec.Command("go", "run", "main.go").Start()
-	if err != nil {
-		t.Error("[SERVER ERROR]", "want nil : ", err)
-	}
+	// err := exec.Command("go", "run", "main.go").Start()
+	// if err != nil {
+	// 	t.Error("[SERVER ERROR]", "want nil : ", err)
+	// }
+	cmd := exec.Command("go", "run", "main.go")
+	cmd.Start()
+	cmd.Wait()
 }
 
 /*

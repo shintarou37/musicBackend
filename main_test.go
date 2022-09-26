@@ -18,7 +18,7 @@ import (
 */
 func TestServer(t *testing.T){
 	fmt.Println("server")
-	err := exec.Command("go", "run", "main.go").Start()
+	err := exec.Command("go", "run", "main.go").Run()
 	if err != nil {
 		t.Error("[SERVER ERROR]", "want nil : ", err)
 	}
@@ -85,6 +85,7 @@ func TestDetail(t *testing.T) {
 		t.Error("[JSON UNMARSHAL EROOR]", "want nil : ", err)
 	}
 
+	fmt.Println(result_struct)
 	// 取得するIDカラムを確認する
 	if result_struct.ID != 1 {
 		t.Error("[RESULT DATA ID ERROR]", "want 1 : ", result_struct.ID)

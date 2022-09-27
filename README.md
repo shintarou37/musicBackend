@@ -19,3 +19,6 @@
 コンピューティングエンジン/コンテナ管理：Fargate/ECS
 データーベース：RDS(MySQL)
 その他：Route53/Application Load Balancer/ECR/CloudWatch
+
+### AWSアーキテクチャ図
+![](https://files.slack.com/files-pri/T5L640RNU-F0435HLQ6HE/snapcrab_noname_2022-9-15_9-58-55_no-00.png)

@@ -18,6 +18,7 @@
 使用クラウド：AWS
 コンピューティングエンジン/コンテナ管理：Fargate/ECS
 データーベース：RDS(MySQL)
+
 その他：Route53/Application Load Balancer/ECR/CloudWatch
 
 ### AWSアーキテクチャ図

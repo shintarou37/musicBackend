@@ -21,4 +21,4 @@
 その他：Route53/Application Load Balancer/ECR/CloudWatch
 
 ### AWSアーキテクチャ図
-![image](https://files.slack.com/files-pri/T5L640RNU-F0435HLQ6HE/snapcrab_noname_2022-9-15_9-58-55_no-00.png)
+![SnapCrab_NoName_2022-9-15_9-58-55_No-00](https://user-images.githubusercontent.com/73889109/192404122-4043008c-8a76-468b-9e99-ec224976bdfe.png)

@@ -45,6 +45,7 @@ func TestTop(t *testing.T) {
 	if resp.Status != "200 OK" {
 		t.Error("[STATUS CODE ERROR]", "want 200 OK : ", resp.Status)
 	}
+	cmd.Wait()
 	cmd.Process.Kill()
 }
 

@@ -11,29 +11,31 @@ import (
 	// "io/ioutil"
 	// "net/http/httptest"
 	"os/exec"
+	"time"
 )
 
 /*
    Server Start
 */
-// func TestServer(t *testing.T){
-// 	fmt.Println("server")
-// 	// err := exec.Command("go", "run", "main.go").Start()
-// 	// if err != nil {
-// 	// 	t.Error("[SERVER ERROR]", "want nil : ", err)
-// 	// }
-// 	cmd := exec.Command("go", "run", "main.go")
-// 	cmd.Start()
-// 	cmd.Wait()
-// }
+func TestServer(t *testing.T){
+	fmt.Println("server")
+	err := exec.Command("go", "run", "main.go").Start()
+	if err != nil {
+		t.Error("[SERVER ERROR]", "want nil : ", err)
+	}
+	cmd := exec.Command("go", "run", "main.go")
+	cmd.Start()
+	// cmd.Wait()
+	time.Sleep(5 * time.Second)
+}
 
 /*
    Top画面
 */
 func TestTop(t *testing.T) {
 	fmt.Println("Top画面")
-	cmd := exec.Command("go", "run", "main.go")
-	cmd.Start()
+	// cmd := exec.Command("go", "run", "main.go")
+	// cmd.Start()
 	resp, err := http.Get("http://127.0.0.1:8080")
 	if err != nil {
 		fmt.Println("err")
@@ -41,12 +43,12 @@ func TestTop(t *testing.T) {
 		t.Error("[HTTP REQUEST ERROR]", "want nil", err)
 	}
 	defer resp.Body.Close()
-
+	time.Sleep(3 * time.Second)
 	if resp.Status != "200 OK" {
 		t.Error("[STATUS CODE ERROR]", "want 200 OK : ", resp.Status)
 	}
-	cmd.Wait()
-	cmd.Process.Kill()
+	// cmd.Wait()
+	// cmd.Process.Kill()
 }
 
 // /*

@@ -1,21 +1,22 @@
 package validates
 
 import (
+	"unicode/utf8"
+	"log"
 	// "reflect"
 	// "encoding/json"
-	"fmt"
-	"unicode/utf8"
+	// "fmt"
 )
 
 func Register(name, artist, reason string) (bool) {
 
-	var nameln int = utf8.RuneCountInString(name)
+	var nameLn int = utf8.RuneCountInString(name)
 	var artistln int = utf8.RuneCountInString(artist)
-	var reasonln int = utf8.RuneCountInString(reason)
+	var reasonLn int = utf8.RuneCountInString(reason)
 
 	// 文字数を確認する
-	if nameln == 0 || nameln >= 101 || artistln == 0 || artistln >= 101 || reasonln >= 1001{
-		fmt.Println("文字数エラー")
+	if nameLn == 0 || nameLn >= 101 || artistln == 0 || artistln >= 101 || reasonLn >= 1001{
+		log.Println("文字数エラー")
 		return false
 	}
 

@@ -1,12 +1,13 @@
 package models
 
 import (
-	// "encoding/json"
 	"strconv"
-	"fmt"
 	"gorm.io/gorm"
 	"backend/unify"
+	"log"
 	// "reflect"
+	// "fmt"
+	// "encoding/json"
 )
 
 /*
@@ -27,12 +28,15 @@ func ReadMulti(db *gorm.DB, search string) ([]unify.ResultMusic, []unify.Mst_sit
 	// return music, situation_arr, false
 	// Musicテーブルのレコードを取得する
 	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Order("musics.id asc").Find(&music, musicSearch).Error; err != nil {
-	    fmt.Println(err)
+	  log.Println("ReadMult関数のmusicsテーブルのデータ取得時にエラー")
+	  log.Println(err)
 		return music, situation_arr, false
 	}
 
 	// Mst_situationテーブルのレコードを取得する
 	if err := db.Debug().Find(&situation_arr).Error; err != nil {
+		log.Println("ReadMult関数のmst_situationテーブルのデータ取得時にエラー")
+	  log.Println(err)
 		return music, situation_arr, false
 	}
 
@@ -48,7 +52,8 @@ func Read(db *gorm.DB, id string) (unify.ResultMusic, bool) {
 	// return music, false
 	// テーブル名を指定しないと構造体の名称「ResultMusic」をテーブル名をみなす
 	if err := db.Debug().Table("musics").Select("musics.*, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").First(&music, id).Error; err != nil {
-		fmt.Println(err)
+		log.Println("Read関数のmusicsテーブルのデータ取得時にエラー")
+	  log.Println(err)
 		return music, false
 	}
 	
@@ -61,8 +66,8 @@ func Read(db *gorm.DB, id string) (unify.ResultMusic, bool) {
 
 func Register(db *gorm.DB, create *unify.Music) (bool) {
 	if orm_err := db.Debug().Create(&create).Error; orm_err != nil {
-		fmt.Println("登録関数エラー")
-		fmt.Println(orm_err)
+		log.Println("Register関数エラー")
+	  log.Println(orm_err)
 		return false
 	}
 

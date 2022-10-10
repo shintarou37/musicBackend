@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	// "reflect"
 	"strconv"
-	// "unicode/utf8"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"backend/unify"
@@ -16,6 +14,8 @@ import (
 	"os"
 	"log"
 	"io"
+	// "unicode/utf8"
+	// "reflect"
 )
 
 const (
@@ -30,24 +30,33 @@ var db_err error
 var logfile, _ = os.OpenFile("./request.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 
 func main() {
-	fmt.Println("Start!")
+	log.Println("Server Start!")
+
+	// 環境変数の読み込みを行う
 	err := godotenv.Load(fmt.Sprintf("env/%s.env", os.Getenv("GO_ENV")))
 	if err != nil {
-			fmt.Println(err)
+		log.Println("環境変数の読み込みに失敗")
+		log.Println(err)
 	}
 	dsn := os.Getenv("DB_SET")
 	port := os.Getenv("PORT")
+
+	// データーベースに接続する
 	db, db_err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if db_err != nil {
-		fmt.Println("gorm Open err")
-		panic(db_err)
+		log.Println("データーベースの接続に失敗")
+		log.Println(db_err)
 	}
-	log.SetOutput(io.MultiWriter(logfile, os.Stdout))
 
+	// ログファイルの設定をする
+	log.SetOutput(io.MultiWriter(logfile, os.Stdout))
 	log.SetFlags(log.Ldate | log.Ltime)
+
+	// HTTP handler
 	http.HandleFunc("/", top)
 	http.HandleFunc("/detail", detail)
 	http.HandleFunc("/register", register)
+	// サーバー起動を起動する
 	http.ListenAndServe(port, nil)
 }
 
@@ -69,8 +78,8 @@ func top(w http.ResponseWriter, r *http.Request) {
 	// 全レコードを取得する
 	music, situation, orm_err := models.ReadMulti(db, search)
 	if !orm_err {
-		fmt.Println("ReadMulti error happen!")
-		fmt.Println(orm_err)
+		log.Println("ReadMulti error happen!")
+		log.Println(orm_err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, false)
 		return
@@ -106,11 +115,12 @@ func detail(w http.ResponseWriter, r *http.Request) {
 	ret, orm_err := models.Read(db, id)
 
 	// jsonエンコード
-	outputJson, err := json.Marshal(ret)
+	outputJson, _ := json.Marshal(ret)
 
 	// エラー処理
-	if err != nil || !orm_err {
-		fmt.Println("error happen!")
+	if !orm_err {
+		log.Println("orm_error happen!")
+		log.Println(orm_err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -122,14 +132,14 @@ func detail(w http.ResponseWriter, r *http.Request) {
    登録機能
 */
 func register(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("パス（\"/register\"）でGOが呼び出された")
+
 	// 登録機能時にOPTIONSリクエストが送付される
 	fmt.Println(r.Method)
 	if r.Method != http.MethodPost {
 		return
 	}
 
-	// // ヘッダーをセットする
+	// ヘッダーをセットする
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
 
@@ -139,10 +149,12 @@ func register(w http.ResponseWriter, r *http.Request) {
 	var reason string = r.URL.Query().Get("reason")
 
 	// 文字数チェック
-	retVatidate := validates.Register(name, artist, reason)
+	retValidate := validates.Register(name, artist, reason)
 
-	if !retVatidate {
+	if !retValidate {
 		// 文字数が不正である場合は400エラーを返却する
+		log.Println("validate_error happen!")
+		log.Println(retValidate)
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, false)
 		return
@@ -160,7 +172,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 	ret := models.Register(db, &create)
 
 	if !ret {
-		fmt.Println("登録エラー")
+		log.Println("登録エラー")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 

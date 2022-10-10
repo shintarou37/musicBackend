@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-  "reflect"
   "github.com/joho/godotenv"
 	"os"
   "backend/unify"
+  // "reflect"
 )
 
 type Mst_situation struct {
@@ -26,15 +26,16 @@ type Music struct {
 
 func main() {
     fmt.Println("Start migrate!");
+    // データーベースに接続する
     err := godotenv.Load(fmt.Sprintf("env/%s.env", os.Getenv("GO_ENV")))
     if err != nil {
         fmt.Println(err)
     }
     dsn := os.Getenv("DB_SET")
     db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-    fmt.Println(reflect.TypeOf(db))
     if err != nil {
-		panic("failed to connect database")
+		  panic("failed to connect database")
+    // エラーが発生しなかった場合にmigrateを実行する
 		} else {
       // down01(dsn, db);
       up01(dsn, db)
@@ -44,6 +45,7 @@ func main() {
     fmt.Println("End migrate!");
 }
 
+// migrate up関数
 func up01(dsn string, db *gorm.DB) {
     fmt.Println("Start up01!");
     // charsetをutf8mb4にしないと、ORMをDBに接続した際のcharsetと合わずに文字列を登録すると「?」になる
@@ -51,6 +53,7 @@ func up01(dsn string, db *gorm.DB) {
     db.Set("gorm:table_options", "charset=utf8mb4").AutoMigrate(Music{})
     fmt.Println("End up01!");
 }
+// migrate down関数
 func down01(dsn string, db *gorm.DB) {
     fmt.Println("Start down01!");
     // テーブル削除

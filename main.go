@@ -14,6 +14,8 @@ import (
 	"backend/validates"
 	"github.com/joho/godotenv"
 	"os"
+	"log"
+	"io"
 )
 
 const (
@@ -24,6 +26,8 @@ const (
 // グローバルスコープとして定義することで、本ファイルのどの関数でも引数の受け渡しなしに使用可能にする。
 var db *gorm.DB
 var db_err error
+
+var logfile, _ = os.OpenFile("./request.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 
 func main() {
 	fmt.Println("Start!")
@@ -38,7 +42,9 @@ func main() {
 		fmt.Println("gorm Open err")
 		panic(db_err)
 	}
+	log.SetOutput(io.MultiWriter(logfile, os.Stdout))
 
+	log.SetFlags(log.Ldate | log.Ltime)
 	http.HandleFunc("/", top)
 	http.HandleFunc("/detail", detail)
 	http.HandleFunc("/register", register)
@@ -49,12 +55,10 @@ func main() {
    Top画面
 */
 func top(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("パス（\"/\"）でGOが呼び出された")
-
 	// クエリパラメーター"search"を取得する
 	var search string = r.URL.Query().Get("search")
 	if search == "" {
-		fmt.Println("params「search」が空文字列です")
+		log.Println("params「search」が空文字列です")
 	}
 
 	// ヘッダーをセットする（エラー処理後にセットするとCROSエラーになる）

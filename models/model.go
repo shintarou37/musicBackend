@@ -27,7 +27,7 @@ func ReadMulti(db *gorm.DB, search string) ([]unify.ResultMusic, []unify.Mst_sit
 
 	// return music, situation_arr, false
 	// Musicテーブルのレコードを取得する
-	if err := db.Table("musics").Debug().Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Order("musics.id asc").Find(&music, musicSearch).Error; err != nil {
+	if err := db.Table("musics").Debug().Order("id desc").Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Order("musics.id asc").Find(&music, musicSearch).Error; err != nil {
 	  log.Println("ReadMult関数のmusicsテーブルのデータ取得時にエラー")
 	  log.Println(err)
 		return music, situation_arr, false

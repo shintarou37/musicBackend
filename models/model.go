@@ -73,3 +73,16 @@ func Register(db *gorm.DB, create *unify.Music) (bool) {
 
 	return true
 }
+
+/*
+   パス：signup
+*/
+func SignUP(db *gorm.DB, create *unify.User) (bool) {
+	if orm_err := db.Debug().Create(&create).Error; orm_err != nil {
+		log.Println("SignUP関数エラー")
+	  log.Println(orm_err)
+		return false
+	}
+
+	return true
+}

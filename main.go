@@ -18,6 +18,7 @@ import (
 	// "reflect"
 	"github.com/golang-jwt/jwt/v4"
 	// "time"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -60,6 +61,7 @@ func main() {
 	http.HandleFunc("/te", te)
 	http.HandleFunc("/detail", detail)
 	http.HandleFunc("/register", register)
+	http.HandleFunc("/signup", signup)
 	// サーバー起動を起動する
 	http.ListenAndServe(port, nil)
 }
@@ -68,19 +70,29 @@ func token(w http.ResponseWriter, r *http.Request) {
 	// トークン生成
 	token := jwt.New(jwt.SigningMethodHS256)
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	// トークンに電子署名を追加する
 	tokenString, _ := token.SignedString([]byte(os.Getenv("SIGNINGKEY")))
 
 	// Cookieに追加する
 	cookie := &http.Cookie{
-		Name: "hoge",
+		Name: "token",
 		Value: tokenString,
 		MaxAge: 30 * 10,
 	 }
+	//  var i [2]int
+	 var a = unify. Music{}
+	 aJson, _ := json.Marshal(a)
+	// Cookieに追加する
+	cookie2 := &http.Cookie{
+		Name: "Likes",
+		Value: string(aJson),
+		MaxAge: 30 * 10,
+	 }
 	http.SetCookie(w, cookie)
+	http.SetCookie(w, cookie2)
 
 	// JWTを返却
 	w.Write([]byte(tokenString))
@@ -89,8 +101,8 @@ func te(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("----teに来た")
 	cookie, _ := r.Cookie("hoge")
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	// tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.jezpHBmixG797D1iZt3ihjOD4p01Bignvv7sUxZP4xo"
  
 	// パースする
@@ -121,10 +133,9 @@ func top(w http.ResponseWriter, r *http.Request) {
 	if search == "" {
 		log.Println("params「search」が空文字列です")
 	}
-
 	// ヘッダーをセットする（エラー処理後にセットするとCROSエラーになる）
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Content-Type", "application/json")
 
 	// 全レコードを取得する
@@ -152,8 +163,8 @@ func detail(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("パス（\"/detail\"）でGOが呼び出された")
 
 	// ヘッダーをセットする
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Content-Type", "application/json")
 
 	// クエリパラメータ「id」を取得する
@@ -192,8 +203,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// ヘッダーをセットする
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	// クエリパラメータを受け取る
 	var name string = r.URL.Query().Get("name")
@@ -222,6 +233,49 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	// レコードの作成
 	ret := models.Register(db, &create)
+
+	if !ret {
+		log.Println("登録エラー")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// データを返却する
+	fmt.Fprint(w, true)
+}
+
+/*
+   利用者登録機能
+*/
+func signup(w http.ResponseWriter, r *http.Request) {
+
+	// ヘッダーをセットする
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	// クエリパラメータを受け取る
+	var name string = r.URL.Query().Get("name")
+	var password string = r.URL.Query().Get("password")
+
+	// 文字数チェック
+	retValidate := validates.SignUp(name, password)
+
+	passwordByte := []byte(password)
+	hashed, _ := bcrypt.GenerateFromPassword(passwordByte, 10)
+
+	if !retValidate {
+		// 文字数が不正である場合は400エラーを返却する
+		log.Println("validate_error happen!")
+		log.Println(retValidate)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, false)
+		return
+	}
+
+	// クエリパラメータに含まれた値を使用して構造体を初期化する。
+	var create = unify.User{Name: name, Password: hashed}
+
+	// // レコードの作成
+	ret := models.SignUP(db, &create)
 
 	if !ret {
 		log.Println("登録エラー")

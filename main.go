@@ -16,6 +16,8 @@ import (
 	"io"
 	// "unicode/utf8"
 	// "reflect"
+	"github.com/golang-jwt/jwt/v4"
+	// "time"
 )
 
 const (
@@ -54,12 +56,62 @@ func main() {
 
 	// HTTP handler
 	http.HandleFunc("/", top)
+	http.HandleFunc("/token", token)
+	http.HandleFunc("/te", te)
 	http.HandleFunc("/detail", detail)
 	http.HandleFunc("/register", register)
 	// サーバー起動を起動する
 	http.ListenAndServe(port, nil)
 }
 
+func token(w http.ResponseWriter, r *http.Request) {
+	// トークン生成
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+
+	// トークンに電子署名を追加する
+	tokenString, _ := token.SignedString([]byte(os.Getenv("SIGNINGKEY")))
+
+	// Cookieに追加する
+	cookie := &http.Cookie{
+		Name: "hoge",
+		Value: tokenString,
+		MaxAge: 30 * 10,
+	 }
+	http.SetCookie(w, cookie)
+
+	// JWTを返却
+	w.Write([]byte(tokenString))
+}
+func te(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("----teに来た")
+	cookie, _ := r.Cookie("hoge")
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	// tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.jezpHBmixG797D1iZt3ihjOD4p01Bignvv7sUxZP4xo"
+ 
+	// パースする
+	token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte(os.Getenv("SIGNINGKEY")), nil
+	})
+	
+	// 検証
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		fmt.Println("検証成功")
+		fmt.Println(claims)
+	} else {
+		fmt.Println("検証失敗")
+		fmt.Println(err)
+	}
+}
 /*
    Top画面
 */

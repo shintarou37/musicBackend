@@ -1,25 +1,30 @@
 package main
 
 import (
+	"backend/models"
+	"backend/unify"
+	"backend/validates"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strconv"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"backend/unify"
-	"backend/models"
-	"backend/validates"
-	"github.com/joho/godotenv"
-	"os"
-	"log"
 	"io"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
 	// "unicode/utf8"
 	// "reflect"
+	"github.com/golang-jwt/jwt/v4"
+	// "time"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	StatusBadRequest          = 400
+	StatusBadRequest 					= 400
+	StatusNotAcceptable       = 406
+	StatusUnauthorized        = 401
 	StatusInternalServerError = 500
 )
 
@@ -56,9 +61,12 @@ func main() {
 	http.HandleFunc("/", top)
 	http.HandleFunc("/detail", detail)
 	http.HandleFunc("/register", register)
+	http.HandleFunc("/signup", signup)
+	http.HandleFunc("/signin", signin)
 	// サーバー起動を起動する
 	http.ListenAndServe(port, nil)
 }
+
 
 /*
    Top画面
@@ -69,10 +77,9 @@ func top(w http.ResponseWriter, r *http.Request) {
 	if search == "" {
 		log.Println("params「search」が空文字列です")
 	}
-
 	// ヘッダーをセットする（エラー処理後にセットするとCROSエラーになる）
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Content-Type", "application/json")
 
 	// 全レコードを取得する
@@ -100,8 +107,8 @@ func detail(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("パス（\"/detail\"）でGOが呼び出された")
 
 	// ヘッダーをセットする
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Content-Type", "application/json")
 
 	// クエリパラメータ「id」を取得する
@@ -140,8 +147,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// ヘッダーをセットする
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	// クエリパラメータを受け取る
 	var name string = r.URL.Query().Get("name")
@@ -178,4 +185,108 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	// データを返却する
 	fmt.Fprint(w, true)
+}
+
+/*
+   利用者登録機能
+*/
+func signup(w http.ResponseWriter, r *http.Request) {
+
+	// ヘッダーをセットする
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	// クエリパラメータを受け取る
+	var name string = r.URL.Query().Get("name")
+	var password string = r.URL.Query().Get("password")
+
+	// 文字数チェック
+	retValidate := validates.SignUp(name, password)
+
+	passwordByte := []byte(password)
+	hashed, _ := bcrypt.GenerateFromPassword(passwordByte, 10)
+
+	if !retValidate {
+		// 文字数が不正である場合は400エラーを返却する
+		log.Println("validate_error happen!")
+		log.Println(retValidate)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, false)
+		return
+	}
+
+	// クエリパラメータに含まれた値を使用して構造体を初期化する。
+	var create = unify.User{Name: name, Password: string(hashed)}
+
+	// // レコードの作成
+	ret := models.SignUP(db, &create)
+
+	if !ret {
+		log.Println("登録エラー")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// データを返却する
+	fmt.Fprint(w, true)
+}
+
+/*
+   ログイン機能
+*/
+func signin(w http.ResponseWriter, r *http.Request) {
+
+	// ヘッダーをセットする
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	// クエリパラメータを受け取る
+	var name string = r.URL.Query().Get("name")
+
+	// 入力した名前をDBから取得する
+	ret, orm_err := models.FindUser(db, name)
+
+	// 名前がDBに存在しない場合
+	if !orm_err {
+		log.Println("名前が違います!")
+		log.Println(orm_err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	var password string = r.URL.Query().Get("password")
+	passwordByte := []byte(password)
+
+	// 第一引数にDBに保存しているカラムの値、第２引数に入力したパスワードをbyte型に変更して確認する
+	err := bcrypt.CompareHashAndPassword([]byte(ret.Password), passwordByte)
+	fmt.Println(err)
+	if err != nil {
+		fmt.Println("パスワードが違います")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusNotAcceptable)
+		return
+	}
+
+	// トークン生成
+	token := jwt.New(jwt.SigningMethodHS256)
+	// トークンに電子署名を追加する
+	tokenString, _ := token.SignedString([]byte(os.Getenv("SIGNINGKEY")))
+
+	// Cookieに追加する
+	cookie := &http.Cookie{
+		Name:   "token",
+		Value:  tokenString,
+		MaxAge: 30 * 10,
+	}
+	cookieName := &http.Cookie{
+		Name:   "name",
+		Value:  ret.Name,
+		MaxAge: 30 * 10,
+	}
+	http.SetCookie(w, cookie)
+	http.SetCookie(w, cookieName)
+
+	outputJson, _ := json.Marshal(ret)
+
+	// データを返却する
+	fmt.Fprint(w, string(outputJson))
 }

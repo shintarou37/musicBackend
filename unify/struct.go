@@ -31,3 +31,16 @@ type ResultMusic struct {
 	Mst_situationID		int
 	Mst_situationName   string
 }
+
+type User struct {
+  gorm.Model
+  Name            string
+  Password        string
+  Mst_situationID int
+}
+
+type Like struct {
+  gorm.Model
+  MusicID    int
+  UserID     int
+}

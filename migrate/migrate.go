@@ -24,6 +24,19 @@ type Music struct {
   Mst_situationID int `gorm:"not null"`
 }
 
+type User struct {
+  gorm.Model
+  Name            string
+  Password        string
+  Mst_situationID int
+}
+
+type Like struct {
+  gorm.Model
+  MusicID    int  `gorm:"not null"`
+  UserID     int  `gorm:"not null"`
+}
+
 func main() {
     fmt.Println("Start migrate!");
     // データーベースに接続する
@@ -38,7 +51,9 @@ func main() {
     // エラーが発生しなかった場合にmigrateを実行する
 		} else {
       // down01(dsn, db);
+      // down02(dsn, db);
       up01(dsn, db)
+      up02(dsn, db)
       insert01(dsn, db)
 	}
 
@@ -53,6 +68,12 @@ func up01(dsn string, db *gorm.DB) {
     db.Set("gorm:table_options", "charset=utf8mb4").AutoMigrate(Music{})
     fmt.Println("End up01!");
 }
+func up02(dsn string, db *gorm.DB) {
+    fmt.Println("Start up02!");
+    db.Set("gorm:table_options", "charset=utf8mb4").AutoMigrate(User{})
+    db.Set("gorm:table_options", "charset=utf8mb4").AutoMigrate(Like{})
+    fmt.Println("End up02!");
+}
 // migrate down関数
 func down01(dsn string, db *gorm.DB) {
     fmt.Println("Start down01!");
@@ -60,6 +81,13 @@ func down01(dsn string, db *gorm.DB) {
     db.Migrator().DropTable(&Music{})
     db.Migrator().DropTable(&Mst_situation{})
     fmt.Println("End down01!");
+}
+func down02(dsn string, db *gorm.DB) {
+    fmt.Println("Start down02!");
+    // テーブル削除
+    db.Migrator().DropTable(&User{})
+    db.Migrator().DropTable(&Like{})
+    fmt.Println("End down02!");
 }
 
 func insert01(dsn string, db *gorm.DB) {

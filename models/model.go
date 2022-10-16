@@ -73,3 +73,31 @@ func Register(db *gorm.DB, create *unify.Music) (bool) {
 
 	return true
 }
+
+/*
+   パス：signup
+*/
+func SignUP(db *gorm.DB, create *unify.User) (bool) {
+	if orm_err := db.Debug().Create(&create).Error; orm_err != nil {
+		log.Println("SignUP関数エラー")
+	  log.Println(orm_err)
+		return false
+	}
+
+	return true
+}
+
+/*
+   パス：signin
+*/
+func FindUser(db *gorm.DB, name string) (unify.User, bool) {
+	var user unify.User
+	// return user, false
+	if err := db.Debug().Table("users").Select("users.*").First(&user, "name = ?", name).Error; err != nil {
+		log.Println("FindUser関数のusersテーブルのデータ取得時にエラー")
+	  log.Println(err)
+		return user, false
+	}
+	
+	return user, true
+}

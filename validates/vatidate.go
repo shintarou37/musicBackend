@@ -22,3 +22,17 @@ func Register(name, artist, reason string) (bool) {
 
 	return true
 }
+
+func SignUp(name, password string) (bool) {
+
+	var nameLn int = utf8.RuneCountInString(name)
+	var passwordLn int = utf8.RuneCountInString(password)
+
+	// 文字数を確認する
+	if nameLn == 0 || nameLn >= 10 || passwordLn < 8 || passwordLn >= 16{
+		log.Println("文字数エラー")
+		return false
+	}
+
+	return true
+}

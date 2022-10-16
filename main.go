@@ -234,7 +234,6 @@ func signup(w http.ResponseWriter, r *http.Request) {
    ログイン機能
 */
 func signin(w http.ResponseWriter, r *http.Request) {
-	log.Println("signinきちゃ")
 	// ヘッダーをセットする
 	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
 	w.Header().Set("Access-Control-Allow-Credentials", "true")

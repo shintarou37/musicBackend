@@ -44,3 +44,11 @@ type Like struct {
   MusicID    int
   UserID     int
 }
+
+type SignInRet struct {
+  gorm.Model
+  Name            string
+  Password        string
+  Mst_situationID int
+	Token           string
+}

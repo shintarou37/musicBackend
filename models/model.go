@@ -90,8 +90,8 @@ func SignUP(db *gorm.DB, create *unify.User) (bool) {
 /*
    パス：signin
 */
-func FindUser(db *gorm.DB, name string) (unify.User, bool) {
-	var user unify.User
+func FindUser(db *gorm.DB, name string) (unify.SignInRet, bool) {
+	var user unify.SignInRet
 	// return user, false
 	if err := db.Debug().Table("users").Select("users.*").First(&user, "name = ?", name).Error; err != nil {
 		log.Println("FindUser関数のusersテーブルのデータ取得時にエラー")

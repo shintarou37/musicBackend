@@ -234,7 +234,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
    ログイン機能
 */
 func signin(w http.ResponseWriter, r *http.Request) {
-
+	log.Println("signinきちゃ")
 	// ヘッダーをセットする
 	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -258,35 +258,19 @@ func signin(w http.ResponseWriter, r *http.Request) {
 
 	// 第一引数にDBに保存しているカラムの値、第２引数に入力したパスワードをbyte型に変更して確認する
 	err := bcrypt.CompareHashAndPassword([]byte(ret.Password), passwordByte)
-	fmt.Println(err)
 	if err != nil {
-		fmt.Println("パスワードが違います")
-		fmt.Println(err)
+		log.Println("パスワードが違います")
+		log.Println(err)
 		w.WriteHeader(http.StatusNotAcceptable)
 		return
 	}
-
 	// トークン生成
 	token := jwt.New(jwt.SigningMethodHS256)
 	// トークンに電子署名を追加する
 	tokenString, _ := token.SignedString([]byte(os.Getenv("SIGNINGKEY")))
 
-	// Cookieに追加する
-	cookie := &http.Cookie{
-		Name:   "token",
-		Value:  tokenString,
-		MaxAge: 30 * 10,
-	}
-	cookieName := &http.Cookie{
-		Name:   "name",
-		Value:  ret.Name,
-		MaxAge: 30 * 10,
-	}
-	http.SetCookie(w, cookie)
-	http.SetCookie(w, cookieName)
-
+	ret.Token = tokenString
 	outputJson, _ := json.Marshal(ret)
-
 	// データを返却する
 	fmt.Fprint(w, string(outputJson))
 }

@@ -35,7 +35,7 @@ type ResultMusic struct {
 type User struct {
   gorm.Model
   Name            string
-  Password        []byte
+  Password        string
   Mst_situationID int
 }
 

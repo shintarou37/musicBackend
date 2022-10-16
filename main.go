@@ -1,19 +1,19 @@
 package main
 
 import (
+	"backend/models"
+	"backend/unify"
+	"backend/validates"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strconv"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"backend/unify"
-	"backend/models"
-	"backend/validates"
-	"github.com/joho/godotenv"
-	"os"
-	"log"
 	"io"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
 	// "unicode/utf8"
 	// "reflect"
 	"github.com/golang-jwt/jwt/v4"
@@ -22,7 +22,9 @@ import (
 )
 
 const (
-	StatusBadRequest          = 400
+	StatusBadRequest 					= 400
+	StatusNotAcceptable       = 406
+	StatusUnauthorized        = 401
 	StatusInternalServerError = 500
 )
 
@@ -57,73 +59,15 @@ func main() {
 
 	// HTTP handler
 	http.HandleFunc("/", top)
-	http.HandleFunc("/token", token)
-	http.HandleFunc("/te", te)
 	http.HandleFunc("/detail", detail)
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/signup", signup)
+	http.HandleFunc("/signin", signin)
 	// サーバー起動を起動する
 	http.ListenAndServe(port, nil)
 }
 
-func token(w http.ResponseWriter, r *http.Request) {
-	// トークン生成
-	token := jwt.New(jwt.SigningMethodHS256)
 
-	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-	// トークンに電子署名を追加する
-	tokenString, _ := token.SignedString([]byte(os.Getenv("SIGNINGKEY")))
-
-	// Cookieに追加する
-	cookie := &http.Cookie{
-		Name: "token",
-		Value: tokenString,
-		MaxAge: 30 * 10,
-	 }
-	//  var i [2]int
-	 var a = unify. Music{}
-	 aJson, _ := json.Marshal(a)
-	// Cookieに追加する
-	cookie2 := &http.Cookie{
-		Name: "Likes",
-		Value: string(aJson),
-		MaxAge: 30 * 10,
-	 }
-	http.SetCookie(w, cookie)
-	http.SetCookie(w, cookie2)
-
-	// JWTを返却
-	w.Write([]byte(tokenString))
-}
-func te(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("----teに来た")
-	cookie, _ := r.Cookie("hoge")
-
-	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	// tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.jezpHBmixG797D1iZt3ihjOD4p01Bignvv7sUxZP4xo"
- 
-	// パースする
-	token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
-
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-
-		return []byte(os.Getenv("SIGNINGKEY")), nil
-	})
-	
-	// 検証
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Println("検証成功")
-		fmt.Println(claims)
-	} else {
-		fmt.Println("検証失敗")
-		fmt.Println(err)
-	}
-}
 /*
    Top画面
 */
@@ -272,7 +216,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// クエリパラメータに含まれた値を使用して構造体を初期化する。
-	var create = unify.User{Name: name, Password: hashed}
+	var create = unify.User{Name: name, Password: string(hashed)}
 
 	// // レコードの作成
 	ret := models.SignUP(db, &create)
@@ -284,4 +228,65 @@ func signup(w http.ResponseWriter, r *http.Request) {
 
 	// データを返却する
 	fmt.Fprint(w, true)
+}
+
+/*
+   ログイン機能
+*/
+func signin(w http.ResponseWriter, r *http.Request) {
+
+	// ヘッダーをセットする
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	// クエリパラメータを受け取る
+	var name string = r.URL.Query().Get("name")
+
+	// 入力した名前をDBから取得する
+	ret, orm_err := models.FindUser(db, name)
+
+	// 名前がDBに存在しない場合
+	if !orm_err {
+		log.Println("名前が違います!")
+		log.Println(orm_err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	var password string = r.URL.Query().Get("password")
+	passwordByte := []byte(password)
+
+	// 第一引数にDBに保存しているカラムの値、第２引数に入力したパスワードをbyte型に変更して確認する
+	err := bcrypt.CompareHashAndPassword([]byte(ret.Password), passwordByte)
+	fmt.Println(err)
+	if err != nil {
+		fmt.Println("パスワードが違います")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusNotAcceptable)
+		return
+	}
+
+	// トークン生成
+	token := jwt.New(jwt.SigningMethodHS256)
+	// トークンに電子署名を追加する
+	tokenString, _ := token.SignedString([]byte(os.Getenv("SIGNINGKEY")))
+
+	// Cookieに追加する
+	cookie := &http.Cookie{
+		Name:   "token",
+		Value:  tokenString,
+		MaxAge: 30 * 10,
+	}
+	cookieName := &http.Cookie{
+		Name:   "name",
+		Value:  ret.Name,
+		MaxAge: 30 * 10,
+	}
+	http.SetCookie(w, cookie)
+	http.SetCookie(w, cookieName)
+
+	outputJson, _ := json.Marshal(ret)
+
+	// データを返却する
+	fmt.Fprint(w, string(outputJson))
 }

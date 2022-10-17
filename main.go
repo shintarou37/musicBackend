@@ -119,10 +119,10 @@ func detail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, orm_err := models.Read(db, id)
-
+	ret, situation, orm_err := models.Read(db, id)
+	var res = unify.ResponseDetail{Mst_situation: situation, Music: ret}
 	// jsonエンコード
-	outputJson, _ := json.Marshal(ret)
+	outputJson, _ := json.Marshal(res)
 
 	// エラー処理
 	if !orm_err {

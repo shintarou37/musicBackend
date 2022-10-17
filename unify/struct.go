@@ -23,6 +23,11 @@ type ResponseTop struct {
 	Music         []ResultMusic
 }
 
+type ResponseDetail struct {
+	Mst_situation []Mst_situation
+	Music         ResultMusic
+}
+
 type ResultMusic struct {
 	gorm.Model
 	Name            	string

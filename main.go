@@ -60,6 +60,7 @@ func main() {
 	// HTTP handler
 	http.HandleFunc("/", top)
 	http.HandleFunc("/detail", detail)
+	http.HandleFunc("/update", update)
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/signup", signup)
 	http.HandleFunc("/signin", signin)
@@ -187,6 +188,55 @@ func register(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, true)
 }
 
+/*
+   編集機能
+*/
+func update(w http.ResponseWriter, r *http.Request) {
+
+	// 更新機能時にOPTIONSリクエストが送付される
+	fmt.Println(r.Method)
+	if r.Method != http.MethodPost {
+		return
+	}
+
+	// ヘッダーをセットする
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	// クエリパラメータを受け取る
+	var id string = r.URL.Query().Get("id")
+	var name string = r.URL.Query().Get("name")
+	var artist string = r.URL.Query().Get("artist")
+	var reason string = r.URL.Query().Get("reason")
+
+	// 文字数チェック
+	retValidate := validates.Register(name, artist, reason)
+
+	if !retValidate {
+		// 文字数が不正である場合は400エラーを返却する
+		log.Println("validate_error happen!")
+		log.Println(retValidate)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, false)
+		return
+	}
+
+	// Mst_situationIDをint型に変換する
+	var situationID int
+	var s string = r.URL.Query().Get("situation")
+	situationID, _ = strconv.Atoi(s)
+
+	// レコードの作成
+	ret := models.Update(db, id, name, reason, artist, situationID)
+
+	if !ret {
+		log.Println("更新エラー")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// データを返却する
+	fmt.Fprint(w, true)
+}
 /*
    利用者登録機能
 */

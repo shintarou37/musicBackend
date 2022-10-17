@@ -84,6 +84,19 @@ func Register(db *gorm.DB, create *unify.Music) (bool) {
 }
 
 /*
+   パス：update
+*/
+func Update(db *gorm.DB, id, name, reason, artist string, situationID int) (bool) {
+	if orm_err := db.Debug().Model(&unify.Music{}).Where("id = ?", id).Updates(unify.Music{Name: name, Reason: reason, Artist: artist, Mst_situationID: situationID}).Error; orm_err != nil {
+		log.Println("Update関数エラー")
+	  	log.Println(orm_err)
+		return false
+	}
+
+	return true
+}
+
+/*
    パス：signup
 */
 func SignUP(db *gorm.DB, create *unify.User) (bool) {

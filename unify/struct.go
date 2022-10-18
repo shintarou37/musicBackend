@@ -37,6 +37,7 @@ type ResultMusic struct {
 	Mst_situationID   int
 	Mst_situationName string
 	UserID            int
+	UserName          string
 }
 
 type User struct {

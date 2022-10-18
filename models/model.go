@@ -110,6 +110,20 @@ func SignUP(db *gorm.DB, create *unify.User) (bool) {
 }
 
 /*
+   パス：signup
+*/
+func FindName(db *gorm.DB, name string) (bool) {
+	var user unify.User
+
+	if err := db.Debug().Table("users").Select("users.id").First(&user, "name = ?", name).Error; err != nil {
+		log.Println("findName")
+		log.Println(err)
+		return false
+	}
+	return true
+}
+
+/*
    パス：signin
 */
 func FindUser(db *gorm.DB, name string) (unify.SignInRet, bool) {

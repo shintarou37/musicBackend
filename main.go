@@ -287,6 +287,15 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 入力した名前が既に存在しているか確認する
+	existName := models.FindName(db, name)
+	if existName {
+		log.Println("名前が既に存在しています")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, false)
+		return
+	}
+	
 	// クエリパラメータに含まれた値を使用して構造体を初期化する。
 	var create = unify.User{Name: name, Password: string(hashed)}
 

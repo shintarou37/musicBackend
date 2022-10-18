@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	StatusBadRequest 					= 400
+	StatusBadRequest		  = 400
 	StatusNotAcceptable       = 406
 	StatusUnauthorized        = 401
 	StatusInternalServerError = 500
@@ -192,6 +192,9 @@ func register(w http.ResponseWriter, r *http.Request) {
    編集機能
 */
 func update(w http.ResponseWriter, r *http.Request) {
+	// ヘッダーをセットする
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	// 更新機能時にOPTIONSリクエストが送付される
 	fmt.Println(r.Method)
@@ -199,9 +202,25 @@ func update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ヘッダーをセットする
-	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	// Cookieに保存しているJWTをパースする
+	cookie, _ := r.Cookie("token")
+	token, _ := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("SIGNINGKEY")), nil
+	})
+	
+	// JWT検証
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		log.Println("編集機能 JWT検証成功")
+	} else {
+		log.Println("編集機能 JWT検証失敗")
+		log.Println(claims)
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, false)
+		return
+	}
 
 	// クエリパラメータを受け取る
 	var id string = r.URL.Query().Get("id")

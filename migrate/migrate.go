@@ -22,13 +22,13 @@ type Music struct {
   Artist  string
 	Reason  string
   Mst_situationID int `gorm:"not null"`
+  UserID  int
 }
 
 type User struct {
   gorm.Model
   Name            string
   Password        string
-  Mst_situationID int
 }
 
 type Like struct {
@@ -52,8 +52,10 @@ func main() {
 		} else {
       // down01(dsn, db);
       // down02(dsn, db);
+      // down03(dsn, db);
       up01(dsn, db)
       up02(dsn, db)
+      up03(dsn, db)
       insert01(dsn, db)
 	}
 
@@ -74,6 +76,11 @@ func up02(dsn string, db *gorm.DB) {
     db.Set("gorm:table_options", "charset=utf8mb4").AutoMigrate(Like{})
     fmt.Println("End up02!");
 }
+func up03(dsn string, db *gorm.DB) {
+  fmt.Println("Start up03!");
+  db.Migrator().AddColumn(&Music{}, "UserID")
+  fmt.Println("End up03!");
+}
 // migrate down関数
 func down01(dsn string, db *gorm.DB) {
     fmt.Println("Start down01!");
@@ -87,6 +94,11 @@ func down02(dsn string, db *gorm.DB) {
     // テーブル削除
     db.Migrator().DropTable(&User{})
     db.Migrator().DropTable(&Like{})
+    fmt.Println("End down02!");
+}
+func down03(dsn string, db *gorm.DB) {
+    fmt.Println("Start down02!");
+    db.Migrator().DropColumn(&Music{}, "UserID")
     fmt.Println("End down02!");
 }
 

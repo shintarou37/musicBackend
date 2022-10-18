@@ -16,6 +16,7 @@ type Music struct {
 	Artist          string
 	Reason          string
 	Mst_situationID int
+	UserID          int
 }
 
 type ResponseTop struct {
@@ -30,30 +31,30 @@ type ResponseDetail struct {
 
 type ResultMusic struct {
 	gorm.Model
-	Name            	string
-	Artist          	string
-	Reason          	string
-	Mst_situationID		int
-	Mst_situationName   string
+	Name              string
+	Artist            string
+	Reason            string
+	Mst_situationID   int
+	Mst_situationName string
+	UserID            int
 }
 
 type User struct {
-  gorm.Model
-  Name            string
-  Password        string
-  Mst_situationID int
+	gorm.Model
+	Name     string
+	Password string
 }
 
 type Like struct {
-  gorm.Model
-  MusicID    int
-  UserID     int
+	gorm.Model
+	MusicID int
+	UserID  int
 }
 
 type SignInRet struct {
-  gorm.Model
-  Name            string
-  Password        string
-  Mst_situationID int
+	gorm.Model
+	Name            string
+	Password        string
+	Mst_situationID int
 	Token           string
 }

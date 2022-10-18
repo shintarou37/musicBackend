@@ -27,7 +27,7 @@ func ReadMulti(db *gorm.DB, search string) ([]unify.ResultMusic, []unify.Mst_sit
 
 	// return music, situation_arr, false
 	// Musicテーブルのレコードを取得する
-	if err := db.Table("musics").Debug().Order("id desc").Select("musics.id, musics.name, musics.artist, musics.reason, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Order("musics.id asc").Find(&music, musicSearch).Error; err != nil {
+	if err := db.Table("musics").Debug().Order("id desc").Select("musics.id, musics.name, musics.artist, musics.reason, musics.user_id, musics.mst_situation_id, `mst_situations`.name AS Mst_situationName").Joins("INNER JOIN mst_situations AS `mst_situations` ON `musics`.mst_situation_id = `mst_situations`.id").Order("musics.id asc").Find(&music, musicSearch).Error; err != nil {
 	  log.Println("ReadMult関数のmusicsテーブルのデータ取得時にエラー")
 	  log.Println(err)
 		return music, situation_arr, false
@@ -102,7 +102,7 @@ func Update(db *gorm.DB, id, name, reason, artist string, situationID int) (bool
 func SignUP(db *gorm.DB, create *unify.User) (bool) {
 	if orm_err := db.Debug().Create(&create).Error; orm_err != nil {
 		log.Println("SignUP関数エラー")
-	  log.Println(orm_err)
+	  	log.Println(orm_err)
 		return false
 	}
 

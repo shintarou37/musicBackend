@@ -155,6 +155,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 	var name string = r.URL.Query().Get("name")
 	var artist string = r.URL.Query().Get("artist")
 	var reason string = r.URL.Query().Get("reason")
+	var userIDString string = r.URL.Query().Get("userID")
 
 	// 文字数チェック
 	retValidate := validates.Register(name, artist, reason)
@@ -168,13 +169,15 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Mst_situationIDをint型に変換する
+	// int型に変換する
 	var situationID int
 	var s string = r.URL.Query().Get("situation")
 	situationID, _ = strconv.Atoi(s)
+	var userIDInt int
+	userIDInt, _ = strconv.Atoi(userIDString)
 
 	// クエリパラメータに含まれた値を使用して構造体を初期化する。
-	var create = unify.Music{Name: name, Reason: reason, Artist: artist, Mst_situationID: situationID}
+	var create = unify.Music{Name: name, Reason: reason, Artist: artist, Mst_situationID: situationID, UserID: userIDInt}
 
 	// レコードの作成
 	ret := models.Register(db, &create)

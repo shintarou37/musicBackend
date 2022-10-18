@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	StatusBadRequest		  = 400
+	StatusBadRequest          = 400
 	StatusNotAcceptable       = 406
 	StatusUnauthorized        = 401
 	StatusInternalServerError = 500
@@ -68,7 +68,6 @@ func main() {
 	http.ListenAndServe(port, nil)
 }
 
-
 /*
    Top画面
 */
@@ -105,7 +104,6 @@ func top(w http.ResponseWriter, r *http.Request) {
    詳細画面
 */
 func detail(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("パス（\"/detail\"）でGOが呼び出された")
 
 	// ヘッダーをセットする
 	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
@@ -122,6 +120,7 @@ func detail(w http.ResponseWriter, r *http.Request) {
 
 	ret, situation, orm_err := models.Read(db, id)
 	var res = unify.ResponseDetail{Mst_situation: situation, Music: ret}
+
 	// jsonエンコード
 	outputJson, _ := json.Marshal(res)
 
@@ -213,7 +212,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 		}
 		return []byte(os.Getenv("SIGNINGKEY")), nil
 	})
-	
+
 	// JWT検証
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		log.Println("編集機能 JWT検証成功")
@@ -259,6 +258,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	// データを返却する
 	fmt.Fprint(w, true)
 }
+
 /*
    利用者登録機能
 */
@@ -295,7 +295,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, false)
 		return
 	}
-	
+
 	// クエリパラメータに含まれた値を使用して構造体を初期化する。
 	var create = unify.User{Name: name, Password: string(hashed)}
 
@@ -351,6 +351,7 @@ func signin(w http.ResponseWriter, r *http.Request) {
 
 	ret.Token = tokenString
 	outputJson, _ := json.Marshal(ret)
+	
 	// データを返却する
 	fmt.Fprint(w, string(outputJson))
 }

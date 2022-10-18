@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	StatusBadRequest 					= 400
+	StatusBadRequest          = 400
 	StatusNotAcceptable       = 406
 	StatusUnauthorized        = 401
 	StatusInternalServerError = 500
@@ -60,13 +60,13 @@ func main() {
 	// HTTP handler
 	http.HandleFunc("/", top)
 	http.HandleFunc("/detail", detail)
+	http.HandleFunc("/update", update)
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/signup", signup)
 	http.HandleFunc("/signin", signin)
 	// サーバー起動を起動する
 	http.ListenAndServe(port, nil)
 }
-
 
 /*
    Top画面
@@ -104,7 +104,6 @@ func top(w http.ResponseWriter, r *http.Request) {
    詳細画面
 */
 func detail(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("パス（\"/detail\"）でGOが呼び出された")
 
 	// ヘッダーをセットする
 	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
@@ -119,10 +118,11 @@ func detail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, orm_err := models.Read(db, id)
+	ret, situation, orm_err := models.Read(db, id)
+	var res = unify.ResponseDetail{Mst_situation: situation, Music: ret}
 
 	// jsonエンコード
-	outputJson, _ := json.Marshal(ret)
+	outputJson, _ := json.Marshal(res)
 
 	// エラー処理
 	if !orm_err {
@@ -154,6 +154,81 @@ func register(w http.ResponseWriter, r *http.Request) {
 	var name string = r.URL.Query().Get("name")
 	var artist string = r.URL.Query().Get("artist")
 	var reason string = r.URL.Query().Get("reason")
+	var userIDString string = r.URL.Query().Get("userID")
+
+	// 文字数チェック
+	retValidate := validates.Register(name, artist, reason)
+
+	if !retValidate {
+		// 文字数が不正である場合は400エラーを返却する
+		log.Println("validate_error happen!")
+		log.Println(retValidate)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, false)
+		return
+	}
+
+	// int型に変換する
+	var situationID int
+	var s string = r.URL.Query().Get("situation")
+	situationID, _ = strconv.Atoi(s)
+	var userIDInt int
+	userIDInt, _ = strconv.Atoi(userIDString)
+
+	// クエリパラメータに含まれた値を使用して構造体を初期化する。
+	var create = unify.Music{Name: name, Reason: reason, Artist: artist, Mst_situationID: situationID, UserID: userIDInt}
+
+	// レコードの作成
+	ret := models.Register(db, &create)
+
+	if !ret {
+		log.Println("登録エラー")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// データを返却する
+	fmt.Fprint(w, true)
+}
+
+/*
+   編集機能
+*/
+func update(w http.ResponseWriter, r *http.Request) {
+	// ヘッダーをセットする
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	// 更新機能時にOPTIONSリクエストが送付される
+	fmt.Println(r.Method)
+	if r.Method != http.MethodPost {
+		return
+	}
+
+	// Cookieに保存しているJWTをパースする
+	cookie, _ := r.Cookie("token")
+	token, _ := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("SIGNINGKEY")), nil
+	})
+
+	// JWT検証
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		log.Println("編集機能 JWT検証成功")
+	} else {
+		log.Println("編集機能 JWT検証失敗")
+		log.Println(claims)
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, false)
+		return
+	}
+
+	// クエリパラメータを受け取る
+	var id string = r.URL.Query().Get("id")
+	var name string = r.URL.Query().Get("name")
+	var artist string = r.URL.Query().Get("artist")
+	var reason string = r.URL.Query().Get("reason")
 
 	// 文字数チェック
 	retValidate := validates.Register(name, artist, reason)
@@ -172,14 +247,11 @@ func register(w http.ResponseWriter, r *http.Request) {
 	var s string = r.URL.Query().Get("situation")
 	situationID, _ = strconv.Atoi(s)
 
-	// クエリパラメータに含まれた値を使用して構造体を初期化する。
-	var create = unify.Music{Name: name, Reason: reason, Artist: artist, Mst_situationID: situationID}
-
 	// レコードの作成
-	ret := models.Register(db, &create)
+	ret := models.Update(db, id, name, reason, artist, situationID)
 
 	if !ret {
-		log.Println("登録エラー")
+		log.Println("更新エラー")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -210,6 +282,15 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		// 文字数が不正である場合は400エラーを返却する
 		log.Println("validate_error happen!")
 		log.Println(retValidate)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, false)
+		return
+	}
+
+	// 入力した名前が既に存在しているか確認する
+	existName := models.FindName(db, name)
+	if existName {
+		log.Println("名前が既に存在しています")
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, false)
 		return
@@ -270,6 +351,7 @@ func signin(w http.ResponseWriter, r *http.Request) {
 
 	ret.Token = tokenString
 	outputJson, _ := json.Marshal(ret)
+	
 	// データを返却する
 	fmt.Fprint(w, string(outputJson))
 }

@@ -281,10 +281,10 @@ func signup(w http.ResponseWriter, r *http.Request) {
 	retValidate := validates.SignUp(name, password)
 
 	if !retValidate {
-		// 文字数が不正である場合は400エラーを返却する
+		// 文字数が不正である場合は500エラーを返却する
 		log.Println("validate_error happen!")
 		log.Println(retValidate)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, false)
 		return
 	}

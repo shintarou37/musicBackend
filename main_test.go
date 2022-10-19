@@ -164,15 +164,14 @@ func TestDetail(t *testing.T) {
 	body, err := ioutil.ReadAll(resp.Body)
 
 	// JSONを変換する
-	var result_struct unify.ResultMusic
+	var result_struct unify.ResponseDetail
 	if err := json.Unmarshal(body, &result_struct); err != nil {
 		t.Error("[JSON UNMARSHAL EROOR]", "want nil : ", err)
 	}
 
-	fmt.Println(result_struct)
 	// 取得するIDカラムを確認する
-	if result_struct.ID != 1 {
-		t.Error("[RESULT DATA ID ERROR]", "want 1 : ", result_struct.ID)
+	if result_struct.Music.ID != 1 {
+		t.Error("[RESULT DATA ID ERROR]", "want 1 : ", result_struct.Music.ID)
 	}
 
 	// ステータスコードを確認する

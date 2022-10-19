@@ -16,7 +16,7 @@ import (
 /*
    Server Start
 */
-func TestServer(t *testing.T){
+func TestServer(t *testing.T) {
 	fmt.Println("server start")
 	err := exec.Command("go", "run", "main.go").Start()
 	if err != nil {

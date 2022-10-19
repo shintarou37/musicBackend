@@ -14,11 +14,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 	// "unicode/utf8"
 	// "reflect"
-	"github.com/golang-jwt/jwt/v4"
 	// "time"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -53,6 +53,10 @@ func main() {
 		log.Println(db_err)
 	}
 
+	// main関数終了後にデーターベースへの接続を閉じる
+	dbClose, _ := db.DB()
+	defer dbClose.Close()
+
 	// ログファイルの設定をする
 	log.SetOutput(io.MultiWriter(logfile, os.Stdout))
 	log.SetFlags(log.Ldate | log.Ltime)
@@ -64,6 +68,7 @@ func main() {
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/signup", signup)
 	http.HandleFunc("/signin", signin)
+
 	// サーバー起動を起動する
 	http.ListenAndServe(port, nil)
 }
@@ -72,11 +77,14 @@ func main() {
    Top画面
 */
 func top(w http.ResponseWriter, r *http.Request) {
-	// クエリパラメーター"search"を取得する
+
+	// クエリパラメーターを取得する
 	var search string = r.URL.Query().Get("search")
+	// 何も検索しない場合は空文字で送信される
 	if search == "" {
 		log.Println("params「search」が空文字列です")
 	}
+
 	// ヘッダーをセットする（エラー処理後にセットするとCROSエラーになる）
 	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -110,7 +118,7 @@ func detail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Content-Type", "application/json")
 
-	// クエリパラメータ「id」を取得する
+	// クエリパラメータを取得する
 	var id string = r.URL.Query().Get("id")
 
 	// ブラウザをリロードした際にクエリパラメータがundefindで送付される場合がある
@@ -119,11 +127,6 @@ func detail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ret, situation, orm_err := models.Read(db, id)
-	var res = unify.ResponseDetail{Mst_situation: situation, Music: ret}
-
-	// jsonエンコード
-	outputJson, _ := json.Marshal(res)
-
 	// エラー処理
 	if !orm_err {
 		log.Println("orm_error happen!")
@@ -131,7 +134,10 @@ func detail(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	// jsonデータを返却する
+	// 結果を1つのJSONにまとめる
+	var res = unify.ResponseDetail{Mst_situation: situation, Music: ret}
+	outputJson, _ := json.Marshal(res)
+
 	fmt.Fprint(w, string(outputJson))
 }
 
@@ -186,7 +192,6 @@ func register(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	// データを返却する
 	fmt.Fprint(w, true)
 }
 
@@ -217,6 +222,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		log.Println("編集機能 JWT検証成功")
 	} else {
+		// JWTが不正である場合は401を返却する
 		log.Println("編集機能 JWT検証失敗")
 		log.Println(claims)
 		w.WriteHeader(http.StatusUnauthorized)
@@ -255,7 +261,6 @@ func update(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	// データを返却する
 	fmt.Fprint(w, true)
 }
 
@@ -275,9 +280,6 @@ func signup(w http.ResponseWriter, r *http.Request) {
 	// 文字数チェック
 	retValidate := validates.SignUp(name, password)
 
-	passwordByte := []byte(password)
-	hashed, _ := bcrypt.GenerateFromPassword(passwordByte, 10)
-
 	if !retValidate {
 		// 文字数が不正である場合は400エラーを返却する
 		log.Println("validate_error happen!")
@@ -296,6 +298,10 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// パスワードをハッシュ化する
+	passwordByte := []byte(password)
+	hashed, _ := bcrypt.GenerateFromPassword(passwordByte, 10)
+
 	// クエリパラメータに含まれた値を使用して構造体を初期化する。
 	var create = unify.User{Name: name, Password: string(hashed)}
 
@@ -307,7 +313,6 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	// データを返却する
 	fmt.Fprint(w, true)
 }
 
@@ -325,9 +330,10 @@ func signin(w http.ResponseWriter, r *http.Request) {
 	// 入力した名前をDBから取得する
 	ret, orm_err := models.FindUser(db, name)
 
-	// 名前がDBに存在しない場合
+	// 名前がDBに存在しない場合は401を返却する
 	if !orm_err {
-		log.Println("名前が違います!")
+		log.Println("入力した名前がDBに存在しません")
+		log.Println(name)
 		log.Println(orm_err)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -344,6 +350,7 @@ func signin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotAcceptable)
 		return
 	}
+
 	// トークン生成
 	token := jwt.New(jwt.SigningMethodHS256)
 	// トークンに電子署名を追加する
@@ -351,7 +358,6 @@ func signin(w http.ResponseWriter, r *http.Request) {
 
 	ret.Token = tokenString
 	outputJson, _ := json.Marshal(ret)
-	
-	// データを返却する
+
 	fmt.Fprint(w, string(outputJson))
 }

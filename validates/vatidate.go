@@ -7,7 +7,9 @@ import (
 	// "encoding/json"
 	// "fmt"
 )
-
+/*
+   音楽投稿機能バリデーション
+*/
 func Register(name, artist, reason string) (bool) {
 
 	var nameLn int = utf8.RuneCountInString(name)
@@ -23,6 +25,9 @@ func Register(name, artist, reason string) (bool) {
 	return true
 }
 
+/*
+   利用者新規登録機能バリデーション
+*/
 func SignUp(name, password string) (bool) {
 
 	var nameLn int = utf8.RuneCountInString(name)

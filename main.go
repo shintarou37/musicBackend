@@ -69,7 +69,7 @@ func main() {
 	http.HandleFunc("/signup", signup)
 	http.HandleFunc("/signin", signin)
 
-	// サーバー起動を起動する
+	// サーバーを起動する
 	http.ListenAndServe(port, nil)
 }
 
@@ -208,9 +208,19 @@ func update(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
+	
+	cookie, cookieErr := r.Cookie("token")
+
+	// Cookieが送付されていない場合
+	if cookieErr != nil {
+		log.Println("Cookieが送付されていない")
+		log.Println(cookieErr)
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, false)
+		return
+	}
 
 	// Cookieに保存しているJWTをパースする
-	cookie, _ := r.Cookie("token")
 	token, _ := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

@@ -28,10 +28,9 @@ func TestServer(t *testing.T) {
 }
 
 /*
-   登録機能（最小値 正常系）
+   登録機能（最小値 正常系 ログインなし）
 */
 func TestRegisterLeast(t *testing.T) {
-	fmt.Println("登録機能")
 	var byte []byte
 	resp, err := http.Post("http://127.0.0.1:8080/register?name=a&artist=a&reason=a&situation=1", "application/json", bytes.NewBuffer(byte))
 	if err != nil {
@@ -51,7 +50,6 @@ func TestRegisterLeast(t *testing.T) {
    登録機能（最小値 異常系）
 */
 func TestRegisterLeastFailure(t *testing.T) {
-	fmt.Println("登録機能")
 	var byte []byte
 	resp, err := http.Post("http://127.0.0.1:8080/register?name=&artist=&reason=&situation=1", "application/json", bytes.NewBuffer(byte))
 	if err != nil {
@@ -72,7 +70,6 @@ func TestRegisterLeastFailure(t *testing.T) {
    登録機能（最大値 正常系）
 */
 func TestRegisterLargest(t *testing.T) {
-	fmt.Println("登録機能")
 	var byte []byte
 	resp, err := http.Post("http://127.0.0.1:8080/register?name=ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV&artist=ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV&reason=ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKL&situation=1", "application/json", bytes.NewBuffer(byte))
 	if err != nil {
@@ -92,7 +89,6 @@ func TestRegisterLargest(t *testing.T) {
    登録機能（最大値 異常系）
 */
 func TestRegisterLargestFailure(t *testing.T) {
-	fmt.Println("登録機能")
 	var byte []byte
 	resp, err := http.Post("http://127.0.0.1:8080/register?name=ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV1&artist=ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV1&reason=ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKL1&situation=1", "application/json", bytes.NewBuffer(byte))
 	if err != nil {
@@ -112,8 +108,6 @@ func TestRegisterLargestFailure(t *testing.T) {
    Top画面
 */
 func TestTop(t *testing.T) {
-	fmt.Println("Top画面")
-
 	resp, err := http.Get("http://127.0.0.1:8080")
 	if err != nil {
 		fmt.Println("err")
@@ -121,6 +115,25 @@ func TestTop(t *testing.T) {
 		t.Error("[HTTP REQUEST ERROR]", "want nil", err)
 	}
 	defer resp.Body.Close()
+
+	// リクエストBodyを取得する
+	body, err := ioutil.ReadAll(resp.Body)
+	// fmt.Println(string(body))
+
+	// JSONを変換する
+	var result_struct unify.ResponseTop
+	if err := json.Unmarshal(body, &result_struct); err != nil {
+		t.Error("[JSON UNMARSHAL EROOR]", "want nil : ", err)
+	}
+
+	// 複数の投稿がなされていること
+	if len(result_struct.Music) < 2 {
+		t.Error("[RESULT Music Length ERROR]", "want 2 OR MORE : ", len(result_struct.Music))
+	}
+	// IDカラムの降順で値を取得できていること
+	if result_struct.Music[0].ID < result_struct.Music[1].ID {
+		t.Error("[RESULT DATA ID DESC ERROR]", "want TRUE : ", result_struct.Music[0].ID > result_struct.Music[1].ID)
+	}
 
 	if resp.Status != "200 OK" {
 		t.Error("[STATUS CODE ERROR]", "want 200 OK : ", resp.Status)
@@ -131,8 +144,6 @@ func TestTop(t *testing.T) {
    Top画面（検索あり）
 */
 func TestTopSearch(t *testing.T) {
-	fmt.Println("Top画面（検索あり）")
-
 	resp, err := http.Get("http://127.0.0.1:8080?search=1")
 	if err != nil {
 		fmt.Println("err")
@@ -140,6 +151,25 @@ func TestTopSearch(t *testing.T) {
 		t.Error("[HTTP REQUEST ERROR]", "want nil", err)
 	}
 	defer resp.Body.Close()
+
+	// リクエストBodyを取得する
+	body, err := ioutil.ReadAll(resp.Body)
+	// fmt.Println(string(body))
+
+	// JSONを変換する
+	var result_struct unify.ResponseTop
+	if err := json.Unmarshal(body, &result_struct); err != nil {
+		t.Error("[JSON UNMARSHAL EROOR]", "want nil : ", err)
+	}
+
+	// 複数の投稿がなされていること（以前のテストで1のシチュエーションに複数の投稿を行っている）
+	if len(result_struct.Music) < 2 {
+		t.Error("[RESULT Music Length ERROR]", "want 2 OR MORE : ", len(result_struct.Music))
+	}
+	// IDカラムの降順で値を取得できていること
+	if result_struct.Music[0].ID < result_struct.Music[1].ID {
+		t.Error("[RESULT DATA ID DESC ERROR]", "want TRUE : ", result_struct.Music[0].ID > result_struct.Music[1].ID)
+	}
 
 	if resp.Status != "200 OK" {
 		t.Error("[STATUS CODE ERROR]", "want 200 OK", resp.Status)
@@ -150,8 +180,6 @@ func TestTopSearch(t *testing.T) {
    詳細画面（正常系）
 */
 func TestDetail(t *testing.T) {
-	fmt.Println("詳細画面（正常系）")
-
 	resp, err := http.Get("http://127.0.0.1:8080/detail?id=1")
 	if err != nil {
 		fmt.Println("err")
@@ -184,7 +212,6 @@ func TestDetail(t *testing.T) {
    詳細画面（パラメータ undefined）
 */
 func TestDetailUndefind(t *testing.T) {
-	fmt.Println("詳細画面（パラメータ undefined）")
 	resp, err := http.Get("http://127.0.0.1:8080/detail?id=undefined")
 	if err != nil {
 		fmt.Println("err")
@@ -210,8 +237,6 @@ func TestDetailUndefind(t *testing.T) {
    詳細画面（不正なパラメーター）
 */
 func TestDetailError(t *testing.T) {
-	fmt.Println("詳細画面（不正なパラメーター）")
-
 	resp, err := http.Get("http://127.0.0.1:8080/detail?id=ERROR")
 	if err != nil {
 		fmt.Println("err")

@@ -11,6 +11,10 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"time"
+	// "net/http/cookiejar"
+	// "net/http/httptest"
+	// "strings"
+	// "net/url"
 )
 
 /*
@@ -24,7 +28,7 @@ func TestServer(t *testing.T) {
 	}
 	cmd := exec.Command("go", "run", "main.go")
 	cmd.Start()
-	time.Sleep(10 * time.Second)
+	time.Sleep(30 * time.Second)
 }
 
 /*
@@ -36,7 +40,7 @@ func TestRegisterLeast(t *testing.T) {
 	if err != nil {
 		fmt.Println("err")
 		fmt.Println(err)
-		t.Error("[HTTP REQUEST ERROR]", "want nil", err)
+		t.Error("[HTTP REQUEST ERROR]", "want nil : ", err)
 	}
 	defer resp.Body.Close()
 
@@ -248,5 +252,95 @@ func TestDetailError(t *testing.T) {
 	// ステータスコードを確認する
 	if resp.Status != "500 Internal Server Error" {
 		t.Error("[STATUS CODE ERROR]", "want 500 Internal Server Error : ", resp.Status)
+	}
+}
+/*
+   更新機能（異常系 Cookieなし）
+*/
+func TestUpdateCookieFailure(t *testing.T) {
+	var byte []byte
+	resp, err := http.Post("http://127.0.0.1:8080/update?id=1&name=a&artist=a&reason=a&situation=1", "application/json", bytes.NewBuffer(byte))
+	if err != nil {
+		t.Error("[HTTP REQUEST ERROR]", "want nil", err)
+	}
+	defer resp.Body.Close()
+
+	// Cookieがないので400エラーが返却される
+	if resp.Status != "400 Bad Request" {
+		t.Error("[STATUS CODE ERROR]", "want 400 Bad Request : ", resp.Status)
+	}
+}
+/*
+   更新機能（異常系 Cookieあり 最小値）
+*/
+func TestUpdateLeastFailure(t *testing.T) {
+	var client http.Client
+	cookie := &http.Cookie{
+        Name:   "token",
+        Value:  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.jezpHBmixG797D1iZt3ihjOD4p01Bignvv7sUxZP4xo",
+    }
+
+    req, _ := http.NewRequest("POST", "http://127.0.0.1:8080/update?id=1&name=&artist=&reason=&situation=1", nil)
+    req.AddCookie(cookie)
+
+    resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("err")
+		fmt.Println(err)
+		t.Error("[HTTP REQUEST ERROR]", "want nil", err)
+	}
+    defer resp.Body.Close()
+
+	if resp.Status != "400 Bad Request" {
+		t.Error("[STATUS CODE ERROR]", "want 400 Bad Request : ", resp.Status)
+	}
+}
+/*
+   更新機能（正常系 Cookieあり最小値）
+*/
+func TestUpdateCookie(t *testing.T) {
+	var client http.Client
+	cookie := &http.Cookie{
+        Name:   "token",
+        Value:  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.jezpHBmixG797D1iZt3ihjOD4p01Bignvv7sUxZP4xo",
+    }
+
+    req, _ := http.NewRequest("POST", "http://127.0.0.1:8080/update?id=1&name=a&artist=a&reason=a&situation=1", nil)
+    req.AddCookie(cookie)
+    resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("err")
+		fmt.Println(err)
+		t.Error("[HTTP REQUEST ERROR]", "want nil", err)
+	}
+    defer resp.Body.Close()
+
+    if resp.Status != "200 OK" {
+		t.Error("[STATUS CODE ERROR]", "200 OK : ", resp.Status)
+	}
+}
+/*
+   更新機能（異常系 Cookieあり 最大値）
+*/
+func TestUpdateLargestFailure(t *testing.T) {
+	var client http.Client
+	cookie := &http.Cookie{
+        Name:   "token",
+        Value:  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.jezpHBmixG797D1iZt3ihjOD4p01Bignvv7sUxZP4xo",
+    }
+
+    req, _ := http.NewRequest("POST", "http://127.0.0.1:8080/update?id=1&name=ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV1&artist=ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV1&reason=ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKL1&situation=1", nil)
+    req.AddCookie(cookie)
+
+    resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("err")
+		fmt.Println(err)
+		t.Error("[HTTP REQUEST ERROR]", "want nil", err)
+	}
+    defer resp.Body.Close()
+
+	if resp.Status != "400 Bad Request" {
+		t.Error("[STATUS CODE ERROR]", "want 400 Bad Request : ", resp.Status)
 	}
 }
